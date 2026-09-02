@@ -26,11 +26,13 @@
         const next = current === 'en' ? 'pt-BR' : 'en';
         document.documentElement.lang = next;
         
-        document.querySelectorAll('[data-lang]').forEach(el => {
+        // Toggle only content spans, not the language buttons
+        document.querySelectorAll('span[data-lang]').forEach(el => {
             const lang = el.getAttribute('data-lang');
             el.style.display = lang === next ? '' : 'none';
         });
         
+        // Update button visual state without hiding them
         document.querySelectorAll('.language-button').forEach(btn => {
             const btnLang = btn.getAttribute('data-lang');
             if (btnLang === next) {
