@@ -22,34 +22,61 @@
 <script>
 (function() {
     function toggleLanguage() {
-        const current = document.documentElement.lang;
-        const next = current === 'en' ? 'pt-BR' : 'en';
-        document.documentElement.lang = next;
-        
-        // Toggle only content spans, not the language buttons
-        document.querySelectorAll('span[data-lang]').forEach(el => {
-            const lang = el.getAttribute('data-lang');
-            el.style.display = lang === next ? '' : 'none';
-        });
-        
-        // Update button visual state without hiding them
-        document.querySelectorAll('.language-button').forEach(btn => {
-            const btnLang = btn.getAttribute('data-lang');
-            if (btnLang === next) {
-                btn.classList.add('bg-zinc-950', 'text-gray-100', 'neon-text', 'neon-border');
-                btn.classList.remove('bg-zinc-800/70', 'hover:bg-zinc-700/50', 'text-gray-300');
-            } else {
-                btn.classList.remove('bg-zinc-950', 'text-gray-100', 'neon-text', 'neon-border');
-                btn.classList.add('bg-zinc-800/70', 'hover:bg-zinc-700/50', 'text-gray-300');
-            }
-        });
+        try {
+            const current = document.documentElement.lang || 'en';
+            const next = current === 'en' ? 'pt-BR' : 'en';
+            document.documentElement.lang = next;
+            
+            // Toggle only content spans
+            const spans = document.querySelectorAll('span[data-lang]');
+            spans.forEach(el => {
+                const lang = el.getAttribute('data-lang');
+                if (lang === next) {
+                    el.style.display = '';
+                    el.removeAttribute('hidden');
+                } else {
+                    el.style.display = 'none';
+                    el.setAttribute('hidden', '');
+                }
+            });
+            
+            // Update button visual state
+            const buttons = document.querySelectorAll('.language-button');
+            buttons.forEach(btn => {
+                const btnLang = btn.getAttribute('data-lang');
+                if (btnLang === next) {
+                    btn.style.backgroundColor = '#18181b';
+                    btn.style.color = '#f3f4f6';
+                    btn.style.borderColor = '#3b82f6';
+                    btn.style.boxShadow = '0 0 10px rgba(59,130,246,0.5)';
+                } else {
+                    btn.style.backgroundColor = 'rgba(39,39,42,0.7)';
+                    btn.style.color = '#d4d4d8';
+                    btn.style.borderColor = 'rgba(161,161,170,0.3)';
+                    btn.style.boxShadow = 'none';
+                }
+            });
+            
+            console.log('Language toggled to:', next, '- Total spans:', spans.length);
+        } catch(e) {
+            console.error('toggleLanguage error:', e);
+        }
     }
     
-    window.toggleLanguage = toggleLanguage;
-    
-    // Start in English since this is the primary language for foreign employers
-    if (document.documentElement.lang !== 'en') {
-        toggleLanguage();
+    // Run after DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            window.toggleLanguage = toggleLanguage;
+            // Start in English
+            if (document.documentElement.lang !== 'en') {
+                toggleLanguage();
+            }
+        });
+    } else {
+        window.toggleLanguage = toggleLanguage;
+        if (document.documentElement.lang !== 'en') {
+            toggleLanguage();
+        }
     }
 })();
 </script>
