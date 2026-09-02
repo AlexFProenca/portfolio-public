@@ -1,0 +1,30 @@
+$('startBtn').addEventListener('click', () => {
+  currentPage = 1;
+  $('intro').classList.add('hidden');
+  renderScene(STORY[1]);
+});
+
+(function() {
+  const chars = [
+    { key: 'cashierkaren', label: 'Cashier Karen', page: 1 },
+    { key: 'american_idiot', label: 'American Idiot', page: 5 },
+    { key: 'cop', label: 'Cop', page: 9 },
+    { key: 'woogirl', label: 'Woogirl', page: 13 }
+  ];
+  const wrap = $('characters');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  chars.forEach((c) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice';
+    btn.style.minWidth = '180px';
+    btn.textContent = c.label;
+    btn.addEventListener('click', () => {
+      currentPage = c.page;
+      $('intro').classList.add('hidden');
+      renderScene(STORY[c.page]);
+    });
+    wrap.appendChild(btn);
+  });
+})();
+</script>

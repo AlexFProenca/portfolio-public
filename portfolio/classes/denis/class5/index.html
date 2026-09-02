@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 5 — Leitura e Interpretação | Aliança</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0f0f12;
+    color: #e4e4e7;
+    min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(135deg, #1a1a1f 0%, #111115 100%);
+    color: #e4e4e7;
+    padding: 32px 24px;
+    text-align: center;
+    border-bottom: 1px solid #27272a;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: 0.3px; }
+  header p { margin-top: 6px; opacity: 0.8; font-size: 0.95rem; color: #a1a1aa; }
+  .progress-bar-wrap {
+    max-width: 720px; margin: 20px auto 0;
+    background: #27272a;
+    border-radius: 20px; height: 10px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; width: 0%;
+    background: #e4e4e7;
+    border-radius: 20px;
+    transition: width 0.4s ease;
+  }
+  .progress-label {
+    max-width: 720px; margin: 6px auto 0;
+    color: #a1a1aa;
+    font-size: 0.8rem; text-align: right;
+  }
+  main {
+    max-width: 900px; margin: 0 auto;
+    padding: 32px 20px 60px;
+    display: flex; flex-direction: column; gap: 32px;
+  }
+  .text-card {
+    background: #18181b;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.2);
+    border: 1px solid #27272a;
+  }
+  .text-header {
+    background: #111115;
+    color: #e4e4e7;
+    padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid #27272a;
+  }
+  .text-header h2 { font-size: 1.1rem; font-weight: 700; }
+  .text-header .num {
+    background: #27272a;
+    color: #e4e4e7;
+    padding: 4px 14px; border-radius: 20px;
+    font-size: 0.8rem; font-weight: 700;
+  }
+  .text-body {
+    padding: 24px;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #d4d4d8;
+    background: #18181b;
+    border-bottom: 1px solid #27272a;
+  }
+  .text-body .highlight {
+    background: #3f3f46;
+    color: #fafafa;
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+  .questions {
+    padding: 20px 24px 24px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .question {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .question-text {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #e4e4e7;
+  }
+  .options {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .option {
+    padding: 10px 16px;
+    background: #111115;
+    border: 2px solid #27272a;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 10px;
+    color: #d4d4d8;
+  }
+  .option:hover { background: #1f1f23; border-color: #52525b; }
+  .option input { accent-color: #e4e4e7; width: 18px; height: 18px; }
+  .option.correct { border-color: #2eaa6e; background: #162a1f; color: #d1fae5; }
+  .option.wrong { border-color: #d9534f; background: #2a1517; color: #fee2e2; }
+  .option.disabled { pointer-events: none; opacity: 0.7; }
+  .feedback {
+    font-size: 0.85rem;
+    min-height: 22px;
+    font-weight: 600;
+  }
+  .feedback.ok { color: #4ade80; }
+  .feedback.err { color: #f87171; }
+  footer {
+    text-align: center;
+    padding: 20px;
+    color: #71717a;
+    font-size: 0.75rem;
+  }
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: #18181b;
+    border-radius: 20px;
+    max-width: 520px; width: 100%;
+    padding: 32px; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    border: 1px solid #27272a;
+    animation: pop 0.3s ease;
+  }
+  @keyframes pop {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal h2 { color: #e4e4e7; margin-bottom: 10px; }
+  .modal .score { font-size: 3rem; font-weight: 800; color: #e4e4e7; margin: 10px 0; }
+  .modal p { color: #a1a1aa; margin-bottom: 20px; }
+  .modal button {
+    padding: 12px 32px;
+    background: #27272a; color: #e4e4e7;
+    border: 1px solid #3f3f46; border-radius: 12px;
+    font-weight: 700; cursor: pointer; font-size: 1rem;
+  }
+  .modal button:hover { background: #3f3f46; }
+  .btn-check {
+    padding: 10px 18px;
+    background: #27272a; color: #e4e4e7;
+    border: 1px solid #3f3f46; border-radius: 10px;
+    font-weight: 700; cursor: pointer;
+    font-size: 0.85rem; white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .btn-check:hover { background: #3f3f46; }
+  .btn-check:disabled { background: #1f1f23; color: #71717a; border-color: #27272a; cursor: not-allowed; }
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.4rem; }
+    .text-body { padding: 18px; font-size: 0.95rem; }
+    .questions { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Aula 5 — Leitura e Interpretação</h1>
+  <p>Leia cada texto sobre situações de viagem e responda às perguntas.</p>
+  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar"></div></div>
+  <div class="progress-label" id="progressLabel">0 / 5 textos</div>
+</header>
+
+<main id="texts"></main>
+
+<footer>Aliança · Inglês Avançado · Aula 5 · Denis</footer>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>🎉 Aula concluída!</h2>
+    <p>Você completou todos os 5 textos.</p>
+    <div class="score" id="modalScore">0/20</div>
+    <p id="modalMsg">Continue praticando!</p>
+    <button onclick="closeModal()">Fechar</button>
+  </div>
+</div>
+
+<script>
+const texts = [
+  {
+    title: "1. Lost in London",
+    body: `Maria arrived in London last week. She wanted to visit the British Museum, but she got lost on the way. Her phone battery died, and she could not use GPS. She felt nervous because she did not know anyone in the city. Finally, she stopped a friendly police officer and asked for help. The officer was kind and showed her the right direction. Maria thanked him and arrived at the museum thirty minutes later. She learned that <span class="highlight">asking for help is not a sign of weakness</span> — it is the smartest thing to do when you are lost.`,
+    questions: [
+      {
+        text: "Why did Maria get lost?",
+        options: ["She missed her bus", "Her phone battery died and she could not use GPS", "The museum was closed", "She forgot the address"],
+        correct: 1
+      },
+      {
+        text: "How did Maria feel when she was lost?",
+        options: ["Excited", "Angry", "Nervous", "Tired"],
+        correct: 2
+      },
+      {
+        text: "Who helped Maria find her way?",
+        options: ["A taxi driver", "A hotel receptionist", "A police officer", "A tourist guide"],
+        correct: 2
+      },
+      {
+        text: "What lesson did Maria learn?",
+        options: ["She should always carry a map", "Asking for help is smart, not weak", "London is too big to visit", "Police officers are always friendly"],
+        correct: 1
+      }
+    ]
+  },
+  {
+    title: "2. The Delayed Flight",
+    body: `Tom was waiting at the airport in São Paulo for his flight to Miami. After three hours of delay, the airline announced that the flight was canceled due to bad weather. The passengers were upset. Some shouted at the employees, but Tom stayed calm. He went to the customer service desk and asked politely about his options. The attendant offered him a hotel room for the night and a free meal voucher. Tom accepted and used the extra day to visit the airport's duty-free shops. <span class="highlight">He realized that staying patient usually brings better results</span> than getting angry.`,
+    questions: [
+      {
+        text: "Why was Tom's flight canceled?",
+        options: ["The plane was broken", "There was bad weather", "The pilot was sick", "The airport was closed"],
+        correct: 1
+      },
+      {
+        text: "How did Tom react to the delay?",
+        options: ["He shouted at the employees", "He stayed calm and asked politely", "He went home", "He bought a new ticket with another airline"],
+        correct: 1
+      },
+      {
+        text: "What did the airline offer Tom?",
+        options: ["A free flight next month", "A hotel room and a meal voucher", "A cash refund only", "A seat on a different flight immediately"],
+        correct: 1
+      },
+      {
+        text: "What lesson did Tom learn?",
+        options: ["He should never fly in bad weather", "Patience is better than anger", "Duty-free shops are fun", "Airlines always cancel flights"],
+        correct: 1
+      }
+    ]
+  },
+  {
+    title: "3. Ordering in a Paris Café",
+    body: `Julia sat at a small café in Paris. She wanted to order a croissant and coffee, but she was afraid to speak French because she was not fluent. The waiter came to her table and spoke very fast. Julia felt embarrassed and just pointed at the menu. The waiter smiled and wrote down her order. Later, Julia decided to learn basic French phrases before her next trip. She practiced saying <span class="highlight">"Bonjour" and "Un café, s'il vous plaît"</span> every day. On her last day in Paris, she ordered in French without any help, and the waiter complimented her pronunciation.`,
+    questions: [
+      {
+        text: "Where was Julia sitting?",
+        options: ["In a park", "At a small café in Paris", "At her hotel", "On a train"],
+        correct: 1
+      },
+      {
+        text: "Why did Julia feel embarrassed?",
+        options: ["The food was expensive", "She did not speak French fluently", "The waiter was rude", "She dropped her coffee"],
+        correct: 1
+      },
+      {
+        text: "How did Julia order at first?",
+        options: ["She spoke in perfect French", "She asked another customer to order for her", "She just pointed at the menu", "She left the café"],
+        correct: 2
+      },
+      {
+        text: "What did Julia do after this experience?",
+        options: ["She stopped traveling", "She decided to learn basic French phrases", "She complained to the waiter's manager", "She never ate at cafés again"],
+        correct: 1
+      }
+    ]
+  },
+  {
+    title: "4. The Hotel Check-in Problem",
+    body: `Carlos and his wife arrived at their hotel in Barcelona at 10:00 PM. They had reserved the room three months earlier, but the receptionist could not find their name on the system. The hotel was fully booked, and Carlos started to worry. He showed his reservation confirmation email on his phone. The receptionist apologized and explained that the system crashed earlier that day. She called the manager, and they found a solution: <span class="highlight">they gave the couple an upgraded suite for the same price</span>. Carlos was happy and realized that remaining polite during problems can lead to unexpected rewards.`,
+    questions: [
+      {
+        text: "What time did Carlos and his wife arrive at the hotel?",
+        options: ["6:00 PM", "8:00 PM", "10:00 PM", "11:00 PM"],
+        correct: 2
+      },
+      {
+        text: "Why could the receptionist not find their reservation?",
+        options: ["They never made a reservation", "They arrived too late", "The system crashed earlier that day", "The hotel was closed"],
+        correct: 2
+      },
+      {
+        text: "What solution did the hotel offer?",
+        options: ["They sent them to another hotel", "They gave them an upgraded suite for the same price", "They gave them a discount for a future stay", "They told them to sleep in the lobby"],
+        correct: 1
+      },
+      {
+        text: "What did Carlos learn from this experience?",
+        options: ["Always make reservations with another hotel", "He should never travel with his wife", "Staying polite can lead to rewards", "Hotel systems always crash"],
+        correct: 2
+      }
+    ]
+  },
+  {
+    title: "5. Shopping at a Market in Marrakech",
+    body: `Ana visited a traditional market in Marrakech. She loved the colorful spices, handmade bags, and beautiful lanterns. A shopkeeper offered her a beautiful silver necklace for 200 dirhams. Ana knew from a travel guide that tourists should negotiate the price. She offered 100 dirhams. They talked for ten minutes, and finally agreed on 130 dirhams. Ana was happy with her purchase, but more importantly, <span class="highlight">she enjoyed the friendly conversation with the shopkeeper</span>. She learned that bargaining is not rude in many cultures — it is part of the shopping experience.`,
+    questions: [
+      {
+        text: "Where did Ana go shopping?",
+        options: ["In a modern mall", "In a traditional market in Marrakech", "At an airport duty-free shop", "On the internet"],
+        correct: 1
+      },
+      {
+        text: "What did the shopkeeper first ask for the necklace?",
+        options: ["50 dirhams", "100 dirhams", "150 dirhams", "200 dirhams"],
+        correct: 3
+      },
+      {
+        text: "How much did Ana finally pay?",
+        options: ["100 dirhams", "130 dirhams", "150 dirhams", "200 dirhams"],
+        correct: 1
+      },
+      {
+        text: "What did Ana learn about bargaining?",
+        options: ["It is always rude", "It is part of the culture in many places", "You should never do it", "You should always pay the first price"],
+        correct: 1
+      }
+    ]
+  }
+];
+
+const main = document.getElementById('texts');
+const results = new Array(texts.length).fill(null);
+
+texts.forEach((t, i) => {
+  const card = document.createElement('div');
+  card.className = 'text-card';
+  let qHTML = t.questions.map((q, qi) => `
+    <div class="question">
+      <div class="question-text">${qi + 1}. ${q.text}</div>
+      <div class="options">
+        ${q.options.map((opt, oi) => `
+          <label class="option" id="opt-${i}-${qi}-${oi}">
+            <input type="radio" name="q-${i}-${qi}" value="${oi}">
+            <span>${opt}</span>
+          </label>
+        `).join('')}
+      </div>
+      <div class="feedback" id="fb-${i}-${qi}"></div>
+    </div>
+  `).join('');
+
+  card.innerHTML = `
+    <div class="text-header">
+      <h2>${t.title}</h2>
+      <span class="num">TEXTO ${String(i + 1).padStart(2, '0')}</span>
+    </div>
+    <div class="text-body">${t.body}</div>
+    <div class="questions" id="qarea-${i}">
+      ${qHTML}
+      <button class="btn-check" data-i="${i}">Verificar respostas</button>
+    </div>
+  `;
+  main.appendChild(card);
+});
+
+document.querySelectorAll('.btn-check').forEach(btn => {
+  btn.addEventListener('click', () => checkText(parseInt(btn.dataset.i)));
+});
+
+function checkText(i) {
+  const t = texts[i];
+  let correctCount = 0;
+  let allAnswered = true;
+
+  for (let qi = 0; qi < t.questions.length; qi++) {
+    const selected = document.querySelector(`input[name="q-${i}-${qi}"]:checked`);
+    const fb = document.getElementById(`fb-${i}-${qi}`);
+    const opts = t.questions[qi].options;
+
+    if (!selected) {
+      allAnswered = false;
+      fb.innerHTML = '<span style="color:#71717a">Selecione uma resposta.</span>';
+      fb.className = 'feedback';
+      continue;
+    }
+
+    const val = parseInt(selected.value);
+    const correct = t.questions[qi].correct;
+
+    for (let oi = 0; oi < opts.length; oi++) {
+      const label = document.getElementById(`opt-${i}-${qi}-${oi}`);
+      label.classList.add('disabled');
+      if (oi === correct) label.classList.add('correct');
+      if (oi === val && oi !== correct) label.classList.add('wrong');
+    }
+
+    if (val === correct) {
+      correctCount++;
+      fb.className = 'feedback ok';
+      fb.innerHTML = '✅ Correto!';
+    } else {
+      fb.className = 'feedback err';
+      fb.innerHTML = `❌ Incorreto. A resposta correta é: <strong>${opts[correct]}</strong>`;
+    }
+  }
+
+  if (allAnswered) {
+    results[i] = correctCount;
+    updateProgress();
+  }
+
+  const btn = document.querySelector(`.btn-check[data-i="${i}"]`);
+  btn.disabled = true;
+}
+
+function updateProgress() {
+  const done = results.filter(r => r !== null).length;
+  const totalCorrect = results.filter(r => r !== null).reduce((a, b) => a + b, 0);
+  document.getElementById('progressBar').style.width = (done / texts.length * 100) + '%';
+  document.getElementById('progressLabel').textContent = `${done} / ${texts.length} textos  ·  ${totalCorrect} acerto(s)`;
+  if (done === texts.length) showModal();
+}
+
+function showModal() {
+  const totalCorrect = results.reduce((a, b) => a + b, 0);
+  document.getElementById('modalScore').textContent = `${totalCorrect}/20`;
+  let msg = 'Continue praticando!';
+  if (totalCorrect >= 18) msg = 'Excelente! Você entendeu todos os textos muito bem! 🏆';
+  else if (totalCorrect >= 14) msg = 'Muito bom! Quase perfeito! 🌟';
+  else if (totalCorrect >= 10) msg = 'Bom trabalho! Revise os textos novamente.';
+  else if (totalCorrect >= 5) msg = 'Você está progredindo. Leia com atenção!';
+  document.getElementById('modalMsg').textContent = msg;
+  document.getElementById('modal').classList.add('active');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('active'); }
+</script>
+
+</body>
+</html>

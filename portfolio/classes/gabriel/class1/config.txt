@@ -1,0 +1,6 @@
+TITLE: Dealing with Difficult Americans
+CHARACTERS: american_idiot, cashierkaren, cop, woogirl
+STYLE: dark Nordic noir, semi-transparent minimalist UI
+RESOLUTION: 960x540 base, 16:9
+COUNT_SCENES: 7
+HTML: aula.html

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 6 — Tradução Inglês → Português | Aliança</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f4f6f9;
+    color: #2c3e50;
+    min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(135deg, #0d7c8f 0%, #0a5c6b 100%);
+    color: white;
+    padding: 32px 24px;
+    text-align: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: 0.3px; }
+  header p { margin-top: 6px; opacity: 0.88; font-size: 0.95rem; }
+  .progress-bar-wrap {
+    max-width: 720px; margin: 20px auto 0;
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px; height: 10px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; width: 0%;
+    background: #fff; border-radius: 20px;
+    transition: width 0.4s ease;
+  }
+  .progress-label {
+    max-width: 720px; margin: 6px auto 0;
+    color: rgba(255,255,255,0.85);
+    font-size: 0.8rem; text-align: right;
+  }
+  main {
+    max-width: 1100px; margin: 0 auto;
+    padding: 32px 20px 60px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex; flex-direction: column;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1), 0 12px 32px rgba(0,0,0,0.06); }
+  .card-img {
+    width: 100%; height: 190px;
+    object-fit: cover; display: block;
+    background: #e8edf1;
+  }
+  .card-body { padding: 18px 20px 20px; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+  .card-num {
+    display: inline-block;
+    background: #0d7c8f; color: white;
+    font-size: 0.7rem; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+  .en-sentence {
+    font-size: 1.05rem; font-weight: 600;
+    color: #1a2b3c; line-height: 1.45;
+    font-style: italic;
+  }
+  .input-row { display: flex; gap: 8px; }
+  .input-row input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 2px solid #dce3ea;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    background: #f8fafc;
+    transition: border-color 0.2s;
+    outline: none;
+    font-family: inherit;
+  }
+  .input-row input:focus { border-color: #0d7c8f; background: #fff; }
+  .input-row input.ok { border-color: #2eaa6e; background: #f0faf4; }
+  .input-row input.err { border-color: #d9534f; background: #fef5f5; }
+  .btn-check {
+    padding: 10px 18px;
+    background: #0d7c8f; color: white;
+    border: none; border-radius: 10px;
+    font-weight: 700; cursor: pointer;
+    font-size: 0.85rem; white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .btn-check:hover { background: #0a5c6b; }
+  .btn-check:disabled { background: #a0c4cb; cursor: not-allowed; }
+  .feedback {
+    font-size: 0.82rem; min-height: 20px;
+    display: flex; align-items: center; gap: 6px;
+    font-weight: 500;
+  }
+  .feedback.ok { color: #1d8346; }
+  .feedback.err { color: #c0392b; }
+  .feedback .hint { color: #7f8c8d; font-style: italic; }
+  footer {
+    text-align: center; padding: 20px;
+    color: #8fa3b0; font-size: 0.75rem;
+  }
+  .reveal-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: 2px solid #0d7c8f;
+    color: #0d7c8f; border-radius: 10px;
+    font-weight: 700; cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+  }
+  .reveal-btn:hover { background: #e6f4f7; }
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 100; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: #fff; border-radius: 20px;
+    max-width: 520px; width: 100%;
+    padding: 32px; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: pop 0.3s ease;
+  }
+  @keyframes pop {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal h2 { color: #0d7c8f; margin-bottom: 10px; }
+  .modal .score { font-size: 3rem; font-weight: 800; color: #0d7c8f; margin: 10px 0; }
+  .modal p { color: #5a6b7a; margin-bottom: 20px; }
+  .modal button {
+    padding: 12px 32px;
+    background: #0d7c8f; color: white;
+    border: none; border-radius: 12px;
+    font-weight: 700; cursor: pointer; font-size: 1rem;
+  }
+  .modal button:hover { background: #0a5c6b; }
+  @media (max-width: 600px) {
+    main { grid-template-columns: 1fr; }
+    header h1 { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Aula 6 — Inglês → Português</h1>
+  <p>Traduza as frases do inglês para o português. Use as imagens como pista!</p>
+  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar"></div></div>
+  <div class="progress-label" id="progressLabel">0 / 20</div>
+</header>
+
+<main id="cards"></main>
+
+<footer>Aliança · Inglês Avançado · Aula 6 · Gabriel</footer>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>🎉 Aula concluída!</h2>
+    <p>Você completou todas as 20 frases.</p>
+    <div class="score" id="modalScore">0/20</div>
+    <p id="modalMsg">Continue praticando!</p>
+    <button onclick="closeModal()">Fechar</button>
+  </div>
+</div>
+
+<script>
+const sentences = [
+  { en: "The cat is on the table.", pt: "O gato está em cima da mesa.", img: "https://images.pexels.com/photos/2071873/pexels-photo-2071873.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "She eats an apple every day.", pt: "Ela come uma maçã todos os dias.", img: "https://images.pexels.com/photos/209339/pexels-photo-209339.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "The sun rises in the east.", pt: "O sol nasce no leste.", img: "https://images.pexels.com/photos/13918158/pexels-photo-13918158.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "We study English at school.", pt: "Nós estudamos inglês na escola.", img: "https://images.pexels.com/photos/256520/pexels-photo-256520.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "The dog runs in the park.", pt: "O cachorro corre no parque.", img: "https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "She has a brother and a sister.", pt: "Ela tem um irmão e uma irmã.", img: "https://images.pexels.com/photos/1648377/pexels-photo-1648377.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "The boy drinks milk in the morning.", pt: "O menino bebe leite de manhã.", img: "https://images.pexels.com/photos/7118305/pexels-photo-7118305.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "The house is big and beautiful.", pt: "A casa é grande e bonita.", img: "https://images.pexels.com/photos/259588/pexels-photo-259588.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "I go to school by bus.", pt: "Eu vou à escola de ônibus.", img: "https://images.pexels.com/photos/385998/pexels-photo-385998.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "The book is on the chair.", pt: "O livro está sobre a cadeira.", img: "https://images.pexels.com/photos/1370295/pexels-photo-1370295.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "They play soccer on Sunday.", pt: "Eles jogam futebol no domingo.", img: "https://images.pexels.com/photos/274422/pexels-photo-274422.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "The girl draws a picture.", pt: "A menina pinta um desenho.", img: "https://images.pexels.com/photos/262034/pexels-photo-262034.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "My father works in an office.", pt: "Meu pai trabalha em um escritório.", img: "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "The water is clean and fresh.", pt: "A água é limpa e fresca.", img: "https://images.pexels.com/photos/12644991/pexels-photo-12644991.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "The car is red and fast.", pt: "O carro é vermelho e rápido.", img: "https://images.pexels.com/photos/14377847/pexels-photo-14377847.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "We eat pizza for dinner.", pt: "Nós comemos pizza no jantar.", img: "https://images.pexels.com/photos/17403901/pexels-photo-17403901.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "The teacher writes on the board.", pt: "O professor escreve no quadro.", img: "https://images.pexels.com/photos/5212345/pexels-photo-5212345.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "The flower is yellow and fragrant.", pt: "A flor é amarela e perfumada.", img: "https://images.pexels.com/photos/931154/pexels-photo-931154.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "I read a book at night.", pt: "Eu leio um livro à noite.", img: "https://images.pexels.com/photos/1029141/pexels-photo-1029141.jpeg?auto=compress&cs=tinysrgb&w=600" },
+  { en: "The rain falls in the winter.", pt: "A chuva cai no inverno.", img: "https://images.pexels.com/photos/459451/pexels-photo-459451.jpeg?auto=compress&cs=tinysrgb&w=600" }
+];
+
+function normalize(s) {
+  return s.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+const main = document.getElementById('cards');
+const results = new Array(sentences.length).fill(null);
+
+sentences.forEach((s, i) => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <img class="card-img" src="${s.img}" alt="Imagem ilustrativa" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22><rect fill=%22%23e8edf1%22 width=%22400%22 height=%22200%22/><text x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%238fa3b0%22 font-size=%2214%22>Imagem indisponível</text></svg>'">
+    <div class="card-body">
+      <span class="card-num">FRASE ${String(i+1).padStart(2,'0')}</span>
+      <div class="en-sentence">${s.en}</div>
+      <div class="input-row">
+        <input type="text" id="inp-${i}" placeholder="Escreva a tradução em português..." autocomplete="off">
+        <button class="btn-check" data-i="${i}">Verificar</button>
+      </div>
+      <div class="feedback" id="fb-${i}"></div>
+      <button class="reveal-btn" data-i="${i}">Ver resposta</button>
+    </div>
+  `;
+  main.appendChild(card);
+});
+
+document.querySelectorAll('.btn-check').forEach(btn => {
+  btn.addEventListener('click', () => check(parseInt(btn.dataset.i)));
+});
+
+document.querySelectorAll('.reveal-btn').forEach(btn => {
+  btn.addEventListener('click', () => reveal(parseInt(btn.dataset.i)));
+});
+
+document.querySelectorAll('input[id^="inp-"]').forEach(inp => {
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') check(parseInt(inp.id.split('-')[1])); });
+});
+
+function check(i) {
+  const inp = document.getElementById('inp-' + i);
+  const fb = document.getElementById('fb-' + i);
+  const val = normalize(inp.value);
+  const expected = normalize(sentences[i].pt);
+  if (!val) { fb.innerHTML = '<span class="hint">Digite uma tradução primeiro.</span>'; fb.className = 'feedback'; return; }
+  const ok = val === expected;
+  results[i] = ok;
+  if (ok) {
+    inp.classList.add('ok'); inp.classList.remove('err');
+    fb.className = 'feedback ok';
+    fb.innerHTML = '✅ Correto! Muito bem!';
+  } else {
+    inp.classList.add('err'); inp.classList.remove('ok');
+    fb.className = 'feedback err';
+    fb.innerHTML = '❌ Ainda não. Tente de novo ou clique em "Ver resposta".';
+  }
+  updateProgress();
+}
+
+function reveal(i) {
+  const fb = document.getElementById('fb-' + i);
+  fb.className = 'feedback';
+  fb.innerHTML = `💡 Resposta: <strong>${sentences[i].pt}</strong>`;
+  const inp = document.getElementById('inp-' + i);
+  inp.classList.add('err'); inp.classList.remove('ok');
+  results[i] = false;
+  updateProgress();
+}
+
+function updateProgress() {
+  const done = results.filter(r => r !== null).length;
+  const correct = results.filter(r => r === true).length;
+  document.getElementById('progressBar').style.width = (done / sentences.length * 100) + '%';
+  document.getElementById('progressLabel').textContent = `${done} / ${sentences.length}  ·  ${correct} correto(s)`;
+  if (done === sentences.length) showModal();
+}
+
+function showModal() {
+  const correct = results.filter(r => r === true).length;
+  document.getElementById('modalScore').textContent = `${correct}/20`;
+  let msg = 'Continue praticando!';
+  if (correct === 20) msg = 'Perfeito! Você acertou todas! 🏆';
+  else if (correct >= 15) msg = 'Excelente trabalho! Quase perfeito! 🌟';
+  else if (correct >= 10) msg = 'Bom trabalho! Revise as frases erradas.';
+  else if (correct >= 5) msg = 'Você está no caminho. Pratique mais!';
+  document.getElementById('modalMsg').textContent = msg;
+  document.getElementById('modal').classList.add('active');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('active'); }
+</script>
+
+</body>
+</html>

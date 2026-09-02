@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gabriel — Dealing with Difficult Americans</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: #0a0a0f;
+    color: #e8e8ea;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow-y: auto;
+    user-select: none;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px;
+  }
+  .stage {
+    position: relative;
+    width: 100%;
+    max-width: 960px;
+    aspect-ratio: 16 / 9;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    border: 2px solid rgba(255,255,255,0.08);
+    background: #000;
+  }
+  .scene-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    background: #0a0a0f;
+  }
+  .character {
+    position: absolute;
+    left: 50%;
+    bottom: -10%;
+    height: auto;
+    width: auto;
+    max-width: 320px;
+    transform: translateX(-50%);
+    object-fit: contain;
+    filter: drop-shadow(0 8px 18px rgba(0,0,0,0.45));
+    pointer-events: none;
+    transition: transform .35s ease, opacity .35s ease;
+  }
+  .character.hidden { opacity: 0; transform: scale(1); }
+  #intro.hidden { display: none !important; }
+  .vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.55) 100%);
+    pointer-events: none;
+  }
+  .dialogue {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    background: rgba(10, 10, 18, 0.82);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 14px;
+    min-height: 110px;
+  }
+  .speaker {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+    color: #9aa3b0;
+    margin-bottom: 6px;
+  }
+  .text {
+    font-size: 16px;
+    line-height: 1.4;
+    color: #f1f1f3;
+  }
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    width: 100%;
+    max-width: 960px;
+  }
+  .choice {
+    height: 64px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    color: #f1f1f3;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    text-align: center;
+    transition: transform .12s ease, background .2s ease, box-shadow .2s ease;
+  }
+  .choice:hover {
+    transform: translateY(-3px);
+    background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+    box-shadow: 0 10px 24px rgba(0,0,0,0.4);
+  }
+  .choice:active { transform: translateY(1px) scale(0.98); }
+  .footer {
+    font-size: 11px;
+    color: #5a6472;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+  <div id="intro" style="position:fixed;inset:0;background:#0a0a0f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;z-index:50;">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#7a8290;">Class 1</div>
+    <h1 style="font-size:28px;font-weight:800;color:#f1f1f3;margin:0;text-align:center;line-height:1.2;">Dealing with Difficult Americans</h1>
+    <p style="max-width:640px;color:#c8cdd4;font-size:16px;line-height:1.45;text-align:center;">
+      Rafael just arrived in New York. Now he needs to interact with classic American personalities: a Cashier Karen, an American Idiot guy at the gas station, a street Cop, and a Woogirl in a café.
+      <br><br>
+      Your job is to choose the <b>best natural response</b> in each situation. Every choice leads to a result and changes how the conversation unfolds. Some choices are polite, some are reasonable, and some will make things worse.
+    </p>
+    <div id="characters" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;"></div>
+  </div>
+
+  <div class="stage">
+    <img id="scene" class="scene-bg" src="scenes/scene_01.png" alt="scene">
+    <img id="char" class="character hidden" src="characters_transparent/cashierkaren/happy.png" alt="character">
+    <div class="vignette"></div>
+    <div class="dialogue">
+      <div id="speaker" class="speaker">—</div>
+      <div id="text" class="text">Initializing...</div>
+    </div>
+  </div>
+
+  <div id="choices" class="choices"></div>
+
+  <div class="footer">GABRIEL — ADVANCED English Practice</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+const LEVELS = [
+  { name: 'cashierkaren', happy: 'characters_transparent/cashierkaren/happy.png', angry: 'characters_transparent/cashierkaren/angry.png', puzzled: 'characters_transparent/cashierkaren/puzzled.png', serious: 'characters_transparent/cashierkaren/serious.png' },
+  { name: 'american_idiot', happy: 'characters_transparent/american_idiot/happy.png', angry: 'characters_transparent/american_idiot/angry.png', evil: 'characters_transparent/american_idiot/evil.png' },
+  { name: 'cop', happy: 'characters_transparent/cop/happy.png', angry: 'characters_transparent/cop/angry.png', serious: 'characters_transparent/cop/serious.png' },
+  { name: 'woogirl', happy: 'characters_transparent/woogirl/happy.png', angry: 'characters_transparent/woogirl/angry.png', scare: 'characters_transparent/woogirl/scare.png' }
+];
+
+const STORY = {
+  1: {
+    scene: 'scenes/scene_01.png',
+    character: 'characters_transparent/cashierkaren/happy.png',
+    speaker: 'Cashier Karen',
+    text: 'Rafael walks into a bodega in Queens. Karen is at the register, glaring because he asked for a receipt. She says: “Honey, I’m not your personal accountant. Figure it out yourself.”',
+    choices: [
+      { label: '“Okay, I’m sorry. I’ll just pay and go.”', target: 2, tone: 'reasonable' },
+      { label: 'Politely say: “I understand, but I just need it for my expense report.”', target: 3, tone: 'correct' },
+      { label: '“Are you serious? I just asked for a simple thing.”', target: 4, tone: 'wrong' }
+    ]
+  },
+  2: {
+    scene: 'scenes/scene_01.png',
+    character: 'characters_transparent/cashierkaren/angry.png',
+    speaker: 'Cashier Karen',
+    text: 'You apologize and leave. She slams the door a little. You feel embarrassed, but at least it’s over. Maybe next time avoid eye contact and just pay fast.',
+    choices: [
+      { label: 'Finish transaction quietly and leave.', target: 'end_ok', tone: 'reasonable' },
+      { label: 'Write a complaint note.', target: 'end_bad', tone: 'wrong' }
+    ]
+  },
+  3: {
+    scene: 'scenes/scene_01.png',
+    character: 'characters_transparent/cashierkaren/puzzled.png',
+    speaker: 'Cashier Karen',
+    text: 'She blinks, surprised. “Oh… okay, I guess.” She prints it. She doesn’t smile, but the war is over. Rafael smiles: small victories matter.',
+    choices: [
+      { label: 'Say thank you and leave calmly.', target: 'end_good', tone: 'correct' },
+      { label: 'Mumble about it and storm out.', target: 'end_bad', tone: 'wrong' }
+    ]
+  },
+  4: {
+    scene: 'scenes/scene_01.png',
+    character: 'characters_transparent/cashierkaren/angry.png',
+    speaker: 'Cashier Karen',
+    text: 'Karen yells louder. Other customers turn. She calls the manager. Rafael now looks like the trouble, not her.',
+    choices: [
+      { label: 'Stay quiet and mutter an apology.', target: 'end_bad2', tone: 'reasonable' },
+      { label: 'Repeat your point loudly.', target: 'end_worst', tone: 'wrong' }
+    ]
+  },
+  5: {
+    scene: 'scenes/scene_02.png',
+    character: 'characters_transparent/american_idiot/happy.png',
+    speaker: 'Gas Station Guy',
+    text: 'At a Jersey gas station, a guy in a baseball cap sees Rafael holding a map. He leans in too close: “You lost, pal? I can tell you where to go… if you buy me a beer.”',
+    choices: [
+      { label: 'Laugh and say: “I’m fine, but thanks.”', target: 6, tone: 'reasonable' },
+      { label: 'Clearly say no and step back.', target: 7, tone: 'correct' },
+      { label: 'Argue: “Why would I buy you something?”', target: 8, tone: 'wrong' }
+    ]
+  },
+  6: {
+    scene: 'scenes/scene_02.png',
+    character: 'characters_transparent/american_idiot/angry.png',
+    speaker: 'Gas Station Guy',
+    text: '“Come on, loosen up!” He puts his arm on Rafael’s shoulder. Now it feels personal. You need to end it fast.',
+    choices: [
+      { label: 'Politely remove his arm and repeat: “I really can’t.”', target: 'end_ok2', tone: 'correct' },
+      { label: 'Ignore him and walk away.', target: 'end_bad3', tone: 'reasonable' }
+    ]
+  },
+  7: {
+    scene: 'scenes/scene_02.png',
+    character: 'characters_transparent/american_idiot/happy.png',
+    speaker: 'Gas Station Guy',
+    text: 'He backs off immediately. “Take it easy, man.” Rafael fills the tank and leaves without trouble. The trick is being clear without fighting.',
+    choices: [
+      { label: 'Get in the car and leave.', target: 'end_good2', tone: 'correct' }
+    ]
+  },
+  8: {
+    scene: 'scenes/scene_02.png',
+    character: 'characters_transparent/american_idiot/evil.png',
+    speaker: 'Gas Station Guy',
+    text: 'His tone shifts. “You got an attitude problem.” Now other people look. He asks for money again, louder. This can escalate fast.',
+    choices: [
+      { label: 'Apologize quickly and leave.', target: 'end_bad2', tone: 'reasonable' },
+      { label: 'Yell louder.', target: 'end_worst', tone: 'wrong' }
+    ]
+  },
+  9: {
+    scene: 'scenes/scene_03.png',
+    character: 'characters_transparent/cop/serious.png',
+    speaker: 'Cop',
+    text: 'On the sidewalk, a cop asks Rafael for ID. “Sir, can I see some identification, please?” His voice is flat. You hesitate.',
+    choices: [
+      { label: '“Sure, officer. Here you go.”', target: 10, tone: 'correct' },
+      { label: '“Am I being detained?”', target: 11, tone: 'wrong' },
+      { label: 'Hand it over silently, no eye contact.', target: 12, tone: 'reasonable' }
+    ]
+  },
+  10: {
+    scene: 'scenes/scene_03.png',
+    character: 'characters_transparent/cop/happy.png',
+    speaker: 'Cop',
+    text: 'The cop looks at it, nods, hands it back. “Have a good night, sir.” A clean interaction ends cleanly. That’s the goal.',
+    choices: [
+      { label: 'Say thank you and walk away.', target: 'end_good3', tone: 'correct' }
+    ]
+  },
+  11: {
+    scene: 'scenes/scene_03.png',
+    character: 'characters_transparent/cop/serious.png',
+    speaker: 'Cop',
+    text: 'He raises an eyebrow. “Just a routine check, sir. Cooperate and it’ll take thirty seconds. Make it hard, and it’ll take longer.”',
+    choices: [
+      { label: 'Comply politely.', target: 10, tone: 'reasonable' },
+      { label: 'Hard-resist: “I know my rights.”', target: 'end_bad4', tone: 'wrong' }
+    ]
+  },
+  12: {
+    scene: 'scenes/scene_03.png',
+    character: 'characters_transparent/cop/serious.png',
+    speaker: 'Cop',
+    text: 'The cop nods, returns your ID. He senses respect even without words. Rafa learned: tone matters more than a long speech.',
+    choices: [
+      { label: 'Nod and leave calmly.', target: 'end_good3', tone: 'reasonable' }
+    ]
+  },
+  13: {
+    scene: 'scenes/scene_04.png',
+    character: 'characters_transparent/woogirl/happy.png',
+    speaker: 'Woogirl',
+    text: 'In a Brooklyn café, a girl in a fluffy hoodie talks nonstop to Rafael: “Oh my gosh, I love your accent! Where are you from? Brazil? Tell me everything!”',
+    choices: [
+      { label: 'Share a short story and then ask her a question.', target: 14, tone: 'correct' },
+      { label: 'Lie and pretend to answer a phone call.', target: 15, tone: 'reasonable' },
+      { label: 'Ignore her and stare at your phone.', target: 16, tone: 'wrong' }
+    ]
+  },
+  14: {
+    scene: 'scenes/scene_04.png',
+    character: 'characters_transparent/woogirl/happy.png',
+    speaker: 'Woogirl',
+    text: 'She laughs and calms down. “That’s so cool!” She gives him a free cookie. Rafael learns: small friendliness opens doors.',
+    choices: [
+      { label: 'Thank her and leave with a smile.', target: 'end_good4', tone: 'correct' }
+    ]
+  },
+  15: {
+    scene: 'scenes/scene_04.png',
+    character: 'characters_transparent/woogirl/puzzled.png',
+    speaker: 'Woogirl',
+    text: 'She stops talking. “Oh… okay, sorry.” She leaves. Polite, but you missed a chance to connect.',
+    choices: [
+      { label: 'Let her go.', target: 'end_ok3', tone: 'reasonable' }
+    ]
+  },
+  16: {
+    scene: 'scenes/scene_04.png',
+    character: 'characters_transparent/woogirl/scare.png',
+    speaker: 'Woogirl',
+    text: 'She frowns and says loudly to her friend, “Rude much?” It gets awkward. A few heads turn. Now it’s a small social punishment.',
+    choices: [
+      { label: 'Ignore it and leave quickly.', target: 'end_bad5', tone: 'reasonable' },
+      { label: 'Argue back.', target: 'end_worst', tone: 'wrong' }
+    ]
+  },
+  17: {
+    scene: 'scenes/scene_05.png',
+    character: 'characters_transparent/cashierkaren/puzzled.png',
+    speaker: 'Cashier Karen',
+    text: 'Rafael accidentally bumps a display at a pharmacy. Sometime later, Karen points at the mess. “You owe me eleven ninety-nine.”',
+    choices: [
+      { label: 'Apologize and offer to pay.', target: 18, tone: 'correct' },
+      { label: 'Say “It was already falling.”', target: 19, tone: 'reasonable' },
+      { label: 'Ignore and leave.', target: 'end_bad6', tone: 'wrong' }
+    ]
+  },
+  18: {
+    scene: 'scenes/scene_05.png',
+    character: 'characters_transparent/cashierkaren/happy.png',
+    speaker: 'Cashier Karen',
+    text: 'Karen softens. “Alright, fine.” She rings it up and goes back to work. Crisis avoided. Rafael breathes.',
+    choices: [
+      { label: 'Pay and leave calmly.', target: 'end_good5', tone: 'correct' }
+    ]
+  },
+  19: {
+    scene: 'scenes/scene_05.png',
+    character: 'characters_transparent/cashierkaren/angry.png',
+    speaker: 'Cashier Karen',
+    text: '“That’s not your call, sir.” She calls the manager. It takes 10 minutes, a lecture, and an apology anyway.',
+    choices: [
+      { label: 'Apologize fully to the manager.', target: 'end_ok4', tone: 'reasonable' }
+    ]
+  },
+  20: {
+    scene: 'scenes/scene_06.png',
+    character: 'characters_transparent/american_idiot/angry.png',
+    speaker: 'Gas Station Guy',
+    text: 'Rafael is pumping gas. The same guy from before shows up at the window: “You again? You think you’re better than me?”',
+    choices: [
+      { label: 'Stay calm, don’t engage, and finish fast.', target: 21, tone: 'correct' },
+      { label: 'Answer humorously but firmly.', target: 22, tone: 'reasonable' },
+      { label: 'Say “Back off.”', target: 23, tone: 'wrong' }
+    ]
+  },
+  21: {
+    scene: 'scenes/scene_06.png',
+    character: 'characters_transparent/american_idiot/angry.png',
+    speaker: 'Gas Station Guy',
+    text: 'He stops. Rafael paid and left without a word. Silence is sometimes the loudest answer.',
+    choices: [
+      { label: 'Leave without looking back.', target: 'end_good6', tone: 'correct' }
+    ]
+  },
+  22: {
+    scene: 'scenes/scene_06.png',
+    character: 'characters_transparent/american_idiot/happy.png',
+    speaker: 'Gas Station Guy',
+    text: 'He laughs, distracted. “Fair enough.” No escalation, no trouble, just another weird American interaction.',
+    choices: [
+      { label: 'Smile and leave.', target: 'end_good6', tone: 'reasonable' }
+    ]
+  },
+  23: {
+    scene: 'scenes/scene_06.png',
+    character: 'characters_transparent/american_idiot/evil.png',
+    speaker: 'Gas Station Guy',
+    text: 'He gets loud. “Let’s go!” Now the gas station owner looks over. It’s getting ugly fast.',
+    choices: [
+      { label: 'Apologize and run.', target: 'end_bad7', tone: 'reasonable' },
+      { label: 'Keep shouting.', target: 'end_worst', tone: 'wrong' }
+    ]
+  },
+  24: {
+    scene: 'scenes/scene_07.png',
+    character: 'characters_transparent/cop/serious.png',
+    speaker: 'Cop',
+    text: 'A cop stops Rafael for jaywalking. “Sir, you crossed on red. Let me see your paperwork.” The tone is firm, not angry.',
+    choices: [
+      { label: 'Apologize and show your passport.', target: 'end_good7', tone: 'correct' },
+      { label: 'Say: “In Brazil we don’t do that.”', target: 'end_bad8', tone: 'wrong' },
+      { label: 'Stay silent and hand it over.', target: 'end_ok5', tone: 'reasonable' }
+    ]
+  },
+  25: {
+    scene: 'scenes/scene_03.png',
+    character: 'characters_transparent/cop/happy.png',
+    speaker: 'Cop',
+    text: 'The cop smiles. “Thanks for being cooperative. Watch the lights next time.” He lets you go. Rafael feels like a local pro.',
+    choices: [
+      { label: 'Nod and walk away.', target: 'end_good3', tone: 'correct' }
+    ]
+  }
+};
+
+const ENDS = {
+  end_good: { scene: 'scenes/scene_01.png', character: 'characters_transparent/cashierkaren/happy.png', speaker: '—', text: 'Rafael handled the situation well. Small daily interactions build confidence.' },
+  end_good2: { scene: 'scenes/scene_02.png', character: 'characters_transparent/american_idiot/happy.png', speaker: '—', text: 'Clear boundaries without aggression saved him. That’s the art of saying no.' },
+  end_good3: { scene: 'scenes/scene_03.png', character: 'characters_transparent/cop/happy.png', speaker: '—', text: 'Clean interaction with the law. That’s how a foreigner stays out of trouble.' },
+  end_good4: { scene: 'scenes/scene_04.png', character: 'characters_transparent/woogirl/happy.png', speaker: '—', text: 'You made a friend and avoided a cringey moment. Social flexibility is power.' },
+  end_good5: { scene: 'scenes/scene_05.png', character: 'characters_transparent/cashierkaren/happy.png', speaker: '—', text: 'Mistakes happen. Owning them quickly defuses anger.' },
+  end_good6: { scene: 'scenes/scene_06.png', character: 'characters_transparent/american_idiot/happy.png', speaker: '—', text: 'Silence and speed beat confrontation every time.' },
+  end_good7: { scene: 'scenes/scene_07.png', character: 'characters_transparent/cop/happy.png', speaker: '—', text: 'Respectful compliance keeps everyone safe.' },
+
+  end_ok: { scene: 'scenes/scene_01.png', character: 'characters_transparent/cashierkaren/serious.png', speaker: '—', text: 'It wasn’t bad, just a little embarrassing next time be faster.' },
+  end_ok2: { scene: 'scenes/scene_02.png', character: 'characters_transparent/american_idiot/serious.png', speaker: '—', text: 'You got out without trouble, but it could have been smoother.' },
+  end_ok3: { scene: 'scenes/scene_04.png', character: 'characters_transparent/woogirl/serious.png', speaker: '—', text: 'You avoided the awkward moment, but missed a connection.' },
+  end_ok4: { scene: 'scenes/scene_05.png', character: 'characters_transparent/cashierkaren/serious.png', speaker: '—', text: 'An apology later is still an apology. Next time, be faster.' },
+  end_ok5: { scene: 'scenes/scene_07.png', character: 'characters_transparent/cop/serious.png', speaker: '—', text: 'A little tense, but you complied. That still counts.' },
+
+  end_bad: { scene: 'scenes/scene_01.png', character: 'characters_transparent/cashierkaren/angry.png', speaker: '—', text: 'Escalating small conflicts often leaves you looking worse. Choose kindness even when they started it.' },
+  end_bad2: { scene: 'scenes/scene_01.png', character: 'characters_transparent/cashierkaren/angry.png', speaker: '—', text: 'The situation exploded over nothing. A polite line beats a loud sentence.' },
+  end_bad3: { scene: 'scenes/scene_02.png', character: 'characters_transparent/american_idiot/angry.png', speaker: '—', text: 'Ignoring can feel safe, but it sometimes makes things worse later.' },
+  end_bad4: { scene: 'scenes/scene_03.png', character: 'characters_transparent/cop/angry.png', speaker: '—', text: 'Rights matter, but tone and timing matter more in the moment.' },
+  end_bad5: { scene: 'scenes/scene_04.png', character: 'characters_transparent/woogirl/angry.png', speaker: '—', text: 'Social punishment hurts for hours. Don’t let pride win.' },
+  end_bad6: { scene: 'scenes/scene_05.png', character: 'characters_transparent/cashierkaren/angry.png', speaker: '—', text: 'Running from mistakes invites louder consequences. Stop and fix it.' },
+  end_bad7: { scene: 'scenes/scene_06.png', character: 'characters_transparent/american_idiot/angry.png', speaker: '—', text: 'Shouting at a stranger rarely ends well. Leave quietly next time.' },
+  end_bad8: { scene: 'scenes/scene_07.png', character: 'characters_transparent/cop/angry.png', speaker: '—', text: 'Culture excuses don’t work in the moment. Apologize first, explain later.' },
+
+  end_worst: { scene: 'scenes/scene_01.png', character: 'characters_transparent/cashierkaren/angry.png', speaker: '—', text: 'You made it way worse. From now on: breathe, then choose. In every situation, soft wins over loud.' }
+};
+
+let currentLevel = 0;
+let completedLevels = 0;
+
+let currentPage = null;
+
+function renderEnd(end) {
+  const sceneImg = $('scene');
+  const charImg = $('char');
+  const speaker = $('speaker');
+  const text = $('text');
+  const choicesDiv = $('choices');
+
+  if (end.scene) sceneImg.src = end.scene;
+  charImg.classList.add('hidden');
+  speaker.textContent = '— Result';
+  text.textContent = end.text;
+  choicesDiv.innerHTML = '<button class="choice" id="restartBtn">Choose another character</button>';
+
+  const restartBtn = $('restartBtn');
+  if (restartBtn) {
+    restartBtn.addEventListener('click', () => {
+      currentPage = null;
+      $('intro').classList.remove('hidden');
+      choicesDiv.innerHTML = '';
+    });
+  }
+}
+
+function renderScene(data) {
+  const sceneImg = $('scene');
+  const charImg = $('char');
+  const speaker = $('speaker');
+  const text = $('text');
+  const choicesDiv = $('choices');
+
+  if (data.scene) {
+    sceneImg.src = data.scene;
+  }
+  charImg.classList.add('hidden');
+  if (data.character) {
+    charImg.src = data.character;
+    charImg.classList.remove('hidden');
+  }
+  speaker.textContent = '— ' + (data.speaker || '');
+  text.textContent = data.text || '';
+  choicesDiv.innerHTML = '';
+
+  if (data.choices && data.choices.length) {
+    data.choices.forEach((choice) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.textContent = choice.label;
+      btn.addEventListener('click', () => {
+        const target = choice.target;
+        try {
+          if (typeof target === 'string' && target.startsWith('end_')) {
+            currentPage = 'end';
+            renderEnd(ENDS[target]);
+          } else {
+            currentPage = target;
+            renderScene(STORY[target]);
+          }
+        } catch (e) {
+          console.error('choice error', e);
+          alert('Erro: ' + e.message + '\nAlvo: ' + target);
+        }
+      });
+      choicesDiv.appendChild(btn);
+    });
+  }
+}
+
+function chooseCharacter(page) {
+  currentPage = page;
+  $('intro').classList.add('hidden');
+  renderScene(STORY[page]);
+}
+
+(function() {
+  const chars = [
+    { label: 'Cashier Karen', page: 1 },
+    { label: 'American Idiot', page: 5 },
+    { label: 'Cop', page: 9 },
+    { label: 'Woogirl', page: 13 }
+  ];
+  const wrap = $('characters');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  chars.forEach((c) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice';
+    btn.style.minWidth = '180px';
+    btn.textContent = c.label;
+    btn.addEventListener('click', () => chooseCharacter(c.page));
+    wrap.appendChild(btn);
+  });
+})();
+</script>
+</body>
+</html>

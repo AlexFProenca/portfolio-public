@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treinamento — Linguagem e Comunicação Alternativa</title>
+    <style>
+        :root {
+            --bg: #f5f8fb;
+            --surface: #ffffff;
+            --text: #1f2a33;
+            --muted: #5a6d7e;
+            --primary: #0b5ea8;
+            --primary-soft: #e7f1fb;
+            --accent: #0fa678;
+            --accent-soft: #e6f7f1;
+            --border: rgba(15, 39, 68, 0.12);
+            --shadow: 0 10px 30px rgba(15, 39, 68, 0.08);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+        .slide {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 60px 40px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+            background: linear-gradient(180deg, rgba(245,248,251,0.0), rgba(245,248,251,1));
+        }
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .slide h1 {
+            font-size: clamp(30px, 5vw, 54px);
+            font-weight: 800;
+            letter-spacing: -0.8px;
+            margin-bottom: 20px;
+            color: #083257;
+        }
+        .slide h2 {
+            font-size: clamp(20px, 3vw, 30px);
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #083257;
+        }
+        .slide p, .slide li {
+            font-size: clamp(16px, 2vw, 20px);
+            color: var(--muted);
+            max-width: 920px;
+            line-height: 1.6;
+        }
+        .slide ul {
+            list-style: none;
+            margin-top: 18px;
+        }
+        .slide li {
+            margin-bottom: 12px;
+            padding-left: 28px;
+            position: relative;
+        }
+        .slide li::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 9px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+        .slide .accent {
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .slide .subtitle {
+            font-size: clamp(18px, 2.2vw, 26px);
+            color: #3f5060;
+            margin-bottom: 32px;
+        }
+        .nav {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            gap: 12px;
+            z-index: 100;
+        }
+        .nav button {
+            padding: 10px 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: #083257;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 999px;
+            transition: all 0.25s;
+            box-shadow: var(--shadow);
+        }
+        .nav button:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+        .nav button:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+        .counter {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            color: #7b8d9e;
+            font-size: 12px;
+            z-index: 100;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            border-radius: 999px;
+            box-shadow: var(--shadow);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            max-width: 1100px;
+            margin-top: 24px;
+            width: 100%;
+        }
+        .card {
+            border: 1px solid var(--border);
+            padding: 22px;
+            background: var(--surface);
+            text-align: left;
+            border-radius: 14px;
+            box-shadow: var(--shadow);
+        }
+        .card h3 {
+            font-size: 15px;
+            margin-bottom: 8px;
+            color: #083257;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }
+        .card p {
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="counter" id="counter">1 / 7</div>
+
+    <div class="slide active">
+        <h1>Linguagem e Comunicação Alternativa</h1>
+        <p class="subtitle">Treinamento para compreensão, aplicação e uso prático</p>
+    </div>
+
+    <div class="slide">
+        <h2>Objetivos do Treinamento</h2>
+        <ul style="max-width:760px;margin:18px auto 0;text-align:left;padding-left:0;list-style:none;">
+            <li style="margin-bottom:14px;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Desenvolver autonomia na comunicação</li>
+            <li style="margin-bottom:14px;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Ter conhecimento sobre <span class="accent">modelagem</span> em CSA/CAA</li>
+            <li style="margin-bottom:14px;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Aplicar estratégias em situações reais</li>
+            <li style="margin-bottom:14px;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Conhecer o comunicador alternativo <span class="accent">Expressia</span></li>
+            <li style="margin-bottom:0;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Integração social do individuo</li>
+        </ul>
+    </div>
+
+    <div class="slide">
+        <h2>Comunicação Humana</h2>
+        <ul style="max-width:760px;margin:18px auto 0;text-align:left;padding-left:0;list-style:none;">
+            <li style="margin-bottom:14px;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Capacidade de trocar ideias, dialogar, emitir e receber mensagens</li>
+            <li style="margin-bottom:14px;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Seja de forma oral, escrita, símbolos, sinais, aparelhos</li>
+            <li style="margin-bottom:14px;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Relações inter e intrapessoais</li>
+            <li style="margin-bottom:0;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Integração social do indivíduo</li>
+        </ul>
+    </div>
+
+    <div class="slide">
+        <h2>Linguagem, Língua e Fala</h2>
+        <p class="subtitle">Três dimensões que estruturam a comunicação humana</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:18px;max-width:1100px;width:100%;margin-top:24px;text-align:left;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);">
+                <h3 style="color:#083257;font-size:19px;margin-bottom:10px;font-weight:700;">Linguagem</h3>
+                <p style="color:var(--muted);font-size:17px;line-height:1.6;text-align:justify;margin:0 0 8px 0;">Linguagem interna ou humana</p>
+                <p style="color:var(--muted);font-size:17px;line-height:1.6;text-align:justify;margin:0 0 8px 0;">Capacidade de aprender a representar o mundo externo e interno por meio de símbolos e signos convencionados, a partir da interação com o outro, em qualquer curso do tempo.</p>
+                <p style="color:var(--muted);font-size:17px;line-height:1.6;text-align:justify;margin:0 0 8px 0;">Atenção: linguagem humana — sistema que depende do desenvolvimento biológico e do processo de aprendizagem. Qualquer interferência nesses aspectos pode gerar distúrbio ou atraso na estruturação da linguagem oral e escrita. Aquisição e uso são determinadas pela interação de fatores biológicos, cognitivos, psicossociais e ambientais.</p>
+                <p style="color:var(--muted);font-size:17px;line-height:1.6;text-align:justify;margin:0 0 8px 0;">Seu uso requer conhecimento de fatores associados:</p>
+                <p style="color:var(--muted);font-size:17px;line-height:1.6;text-align:justify;margin:0;">Como: pistas não verbais (expressões faciais); motivação e papéis sociais (quem e com quem se está falando).</p>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);">
+                <h3 style="color:#083257;font-size:19px;margin-bottom:10px;font-weight:700;">Língua</h3>
+                <p style="color:var(--muted);font-size:17px;line-height:1.6;text-align:justify;margin:0 0 8px 0;">Código linguístico / Língua</p>
+                <p style="color:var(--muted);font-size:17px;line-height:1.6;text-align:justify;margin:0 0 8px 0;">Multidão de signos e símbolos isolados, dos quais cada um associa-se a um som particular e a um sentido particular. É o conjunto de unidades de sinais de cada idioma, combinadas de acordo com certas regras e que permite a elaboração de mensagens.</p>
+                <p style="color:var(--muted);font-size:17px;line-height:1.6;text-align:justify;margin:0;">Língua é a correspondência entre imagens auditivas e conceitos.</p>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);">
+                <h3 style="color:#083257;font-size:19px;margin-bottom:10px;font-weight:700;">Fala</h3>
+                <p style="color:var(--muted);font-size:17px;line-height:1.6;text-align:justify;margin:0;">Forma instrumental de se usar a língua para transmitir uma mensagem; Produção fonoarticulatória com intenção ou finalidade comunicativa; Resultado sonoro da movimentação dos órgãos fonoarticulatórios.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Guia Fundamental</h2>
+        <p class="subtitle">Seis pilares que orientam toda a prática comunicativa</p>
+        <div class="grid">
+            <div class="card"><h3>01. Intenção</h3><p>Quem comunica tem vontade de falar com alguém?</p></div>
+            <div class="card"><h3>02. Conteúdo</h3><p>O que queremos transmitir?</p></div>
+            <div class="card"><h3>03. Forma</h3><p>Como a mensagem é transmitida?</p></div>
+            <div class="card"><h3>04. Parceiro</h3><p>Com quem estamos dialogando</p></div>
+            <div class="card"><h3>05. Contexto</h3><p>Onde e quando acontece</p></div>
+            <div class="card"><h3>06. Capacidades Cognitivas</h3><p>Qual o mínimo que a criança possui para se comunicar?</p></div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>CSA</h2>
+        <p class="subtitle">Comunicação Suplementar e/ou Alternativa</p>
+        <div style="display:flex;flex-wrap:wrap;gap:18px;max-width:1100px;width:100%;justify-content:center;">
+            <div style="flex:1 1 320px;text-align:left;">
+                <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                    <thead>
+                        <tr style="background:#eaf4fb;">
+                            <th style="text-align:left;padding:10px;border:1px solid var(--border);color:#083257;">Termo</th>
+                            <th style="text-align:left;padding:10px;border:1px solid var(--border);color:#083257;">Origem</th>
+                            <th style="text-align:left;padding:10px;border:1px solid var(--border);color:#083257;">Ênfase</th>
+                            <th style="text-align:left;padding:10px;border:1px solid var(--border);color:#083257;">Exemplos de uso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding:10px;border:1px solid var(--border);color:#083257;font-weight:600;">CSA</td>
+                            <td style="padding:10px;border:1px solid var(--border);color:var(--muted);">Termo mais usado no Brasil</td>
+                            <td style="padding:10px;border:1px solid var(--border);color:var(--muted);">Suplementa ou substitui a fala</td>
+                            <td style="padding:10px;border:1px solid var(--border);color:var(--muted);">Escolas inclusivas, terapias</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:10px;border:1px solid var(--border);color:#083257;font-weight:600;">CAA</td>
+                            <td style="padding:10px;border:1px solid var(--border);color:var(--muted);">Tradução direta do inglês AAC</td>
+                            <td style="padding:10px;border:1px solid var(--border);color:var(--muted);">Aumenta e amplia formas de comunicação</td>
+                            <td style="padding:10px;border:1px solid var(--border);color:var(--muted);">Clínicas, pesquisas internacionais</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="margin-top:18px;background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);">
+                    <h3 style="color:#083257;font-size:16px;margin-bottom:8px;">Pontos importantes</h3>
+                    <ul style="list-style:none;margin-top:10px;">
+                        <li style="margin-bottom:8px;padding-left:22px;position:relative;color:var(--muted);font-size:14px;">Não exige pré-requisitos cognitivos: qualquer pessoa pode se beneficiar da CSA/CAA.</li>
+                        <li style="margin-bottom:8px;padding-left:22px;position:relative;color:var(--muted);font-size:14px;">Personalização é essencial: adaptar ao perfil do usuário.</li>
+                        <li style="margin-bottom:0;padding-left:22px;position:relative;color:var(--muted);font-size:14px;">Trabalho multidisciplinar: fonoaudiólogos, terapeutas, professores e familiares.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Modelagem</h2>
+        <p class="subtitle">Ensino pelo exemplo</p>
+        <div style="display:flex;flex-wrap:wrap;gap:18px;max-width:1100px;width:100%;justify-content:center;">
+            <div style="flex:1 1 320px;text-align:left;">
+                <div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);">
+                    <h3 style="color:#083257;font-size:16px;margin-bottom:8px;">Benefícios da modelagem</h3>
+                    <ul style="list-style:none;margin-top:10px;">
+                        <li style="margin-bottom:8px;padding-left:22px;position:relative;color:var(--muted);font-size:14px;">Aumento da compreensão e produção de símbolos</li>
+                        <li style="margin-bottom:8px;padding-left:22px;position:relative;color:var(--muted);font-size:14px;">Expansão do vocabulário e da construção frásica</li>
+                        <li style="margin-bottom:8px;padding-left:22px;position:relative;color:var(--muted);font-size:14px;">Redução da frustração e aumento da confiança</li>
+                        <li style="margin-bottom:8px;padding-left:22px;position:relative;color:var(--muted);font-size:14px;">Maior participação em atividades escolares e sociais</li>
+                        <li style="margin-bottom:0;padding-left:22px;position:relative;color:var(--muted);font-size:14px;">Naturalização da CAA como meio legítimo de comunicação</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="flex:1 1 320px;text-align:left;">
+                <div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);">
+                    <h3 style="color:#083257;font-size:16px;margin-bottom:8px;">Pontos críticos</h3>
+                    <ul style="list-style:none;margin-top:10px;">
+                        <li style="margin-bottom:8px;padding-left:22px;position:relative;color:var(--muted);font-size:14px;">Não é correção: o foco é mostrar, não exigir.</li>
+                        <li style="margin-bottom:8px;padding-left:22px;position:relative;color:var(--muted);font-size:14px;">Não é exclusivo para quem não fala: apoia também alunos verbais com dificuldades.</li>
+                        <li style="margin-bottom:0;padding-left:22px;position:relative;color:var(--muted);font-size:14px;">Não é último recurso: é uma ferramenta de inclusão e autonomia.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>Expressia</h2>
+        <p class="subtitle">Comunicador alternativo intuitivo, flexível e acessível</p>
+        <ul style="max-width:760px;margin:18px auto 0;text-align:left;padding-left:0;list-style:none;">
+            <li style="margin-bottom:14px;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Interface limpa e direta</li>
+            <li style="margin-bottom:14px;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Pranchas organizadas por temas</li>
+            <li style="margin-bottom:14px;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Construção de frases rápida</li>
+            <li style="margin-bottom:0;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Ideal para CAA e CSA</li>
+        </ul>
+    </div>
+
+    <div class="slide">
+        <h2>Próximos Passos</h2>
+        <ul style="max-width:760px;margin:18px auto 0;text-align:left;padding-left:0;list-style:none;">
+            <li style="margin-bottom:14px;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Explore o <span class="accent">Expressia</span> na prática</li>
+            <li style="margin-bottom:14px;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Adapte pranchas às necessidades individuais</li>
+            <li style="margin-bottom:14px;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Use a modelagem em cada interação</li>
+            <li style="margin-bottom:0;padding-left:28px;position:relative;font-size:clamp(16px,2vw,20px);color:var(--muted);line-height:1.5;">Registre avanços e ajuste estratégias</li>
+        </ul>
+    </div>
+
+    <div class="slide">
+        <h2 style="margin-bottom:8px;">EXPRESSIA <span style="font-weight:400;color:var(--muted);">(Comunicador do Arthur)</span></h2>
+        <p class="subtitle" style="margin-bottom:18px;">Interface e funcionamento</p>
+        <img src="img/1.jpeg" style="max-height:52vh;width:auto;max-width:92vw;border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow);object-fit:contain;" />
+    </div>
+
+    <div class="slide">
+        <h2 style="margin-bottom:8px;">EXPRESSIA <span style="font-weight:400;color:var(--muted);">(Comunicador do Arthur)</span></h2>
+        <p class="subtitle" style="margin-bottom:18px;">Pranchas e prática</p>
+        <img src="img/2.jpeg" style="max-height:52vh;width:auto;max-width:92vw;border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow);object-fit:contain;" />
+    </div>
+
+    <div class="nav">
+        <button id="prev" onclick="changeSlide(-1)">←</button>
+        <button id="next" onclick="changeSlide(1)">→</button>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        let current = 0;
+        function show(index) {
+            slides[current].classList.remove('active');
+            current = (index + slides.length) % slides.length;
+            slides[current].classList.add('active');
+            document.getElementById('counter').textContent = `${current + 1} / ${slides.length}`;
+            document.getElementById('prev').disabled = current === 0;
+            document.getElementById('next').disabled = current === slides.length - 1;
+        }
+        function changeSlide(dir) { show(current + dir); }
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') changeSlide(1);
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+        });
+        show(0);
+    </script>
+</body>
+</html>

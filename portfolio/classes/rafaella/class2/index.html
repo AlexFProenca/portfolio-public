@@ -1,0 +1,1671 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>The Seed Network — Rafaella</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1200px 800px at 10% 10%, rgba(0,0,0,0.35), transparent),
+      linear-gradient(180deg, #0b0d10, #14181d 55%, #0a0c0f);
+    color: #e7e9ee;
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden;
+  }
+
+  #app {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    grid-template-rows: 56px 1fr 36px;
+    grid-template-areas:
+      "header header"
+      "stage board"
+      "footer footer";
+    height: 100vh;
+    width: 100vw;
+  }
+
+  header {
+    grid-area: header;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    background: rgba(10, 12, 14, 0.65);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  header h1 {
+    font-size: 14px;
+    letter-spacing: .35em;
+    text-transform: uppercase;
+    margin: 0;
+    color: #c9cdd4;
+  }
+  .pill {
+    font-size: 11px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: #cfd3dc;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 6px 10px;
+    border-radius: 999px;
+  }
+
+  #stage {
+    grid-area: stage;
+    position: relative;
+    overflow: hidden;
+    background: #000;
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  #scene, #char {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  #char {
+    pointer-events: none;
+    object-fit: contain;
+    object-position: bottom center;
+    height: 80%;
+    width: auto;
+    max-width: 55%;
+    bottom: 0;
+    top: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  #vignette {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(900px 600px at 50% 40%, transparent 55%, rgba(0,0,0,0.65) 100%),
+      linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.85));
+    pointer-events: none;
+  }
+  #dialogue {
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    bottom: 22px;
+    padding: 16px 18px;
+    background: linear-gradient(180deg, rgba(18,21,26,0.85), rgba(10,12,14,0.95));
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    backdrop-filter: blur(12px);
+  }
+  #speaker {
+    font-size: 11px;
+    letter-spacing: .35em;
+    text-transform: uppercase;
+    color: #8a919c;
+    margin: 0 0 6px;
+  }
+  #text {
+    font-size: 15px;
+    line-height: 1.45;
+    color #edf0f5;
+    margin: 0;
+    min-height: 42px;
+  }
+  #choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .choice {
+    appearance: none;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05);
+    color: #e7e9ee;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.3;
+    text-align: left;
+    transition: transform .06s ease, background .2s ease, border-color .2s ease;
+  }
+  .choice:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.22); }
+  .choice:active { transform: translateY(1px); }
+
+  #board {
+    grid-area: board;
+    overflow: auto;
+    padding: 14px;
+    background: linear-gradient(180deg, rgba(14,16,20,0.9), rgba(10,12,14,0.95));
+    border-left: 1px solid rgba(255,255,255,0.06);
+  }
+  #board h2 {
+    font-size: 11px;
+    letter-spacing: .35em;
+    text-transform: uppercase;
+    color: #8a919c;
+    margin: 0 0 10px;
+  }
+  .clue {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    margin-bottom: 10px;
+  }
+  .clue .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    color: #cfd3dc;
+    flex-shrink: 0;
+  }
+  .clue .content {
+    font-size: 12px;
+    line-height: 1.4;
+    color #d3d6de;
+  }
+  .clue .content strong {
+    display: block;
+    font-size: 11px;
+    letter-spacing: .25em;
+    text-transform: uppercase;
+    color: #9aa1ac;
+    margin-bottom: 2px;
+  }
+  .empty {
+    font-size: 12px;
+    color: #7a818c;
+    line-height: 1.4;
+  }
+
+  footer {
+    grid-area: footer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    background: rgba(10,12,14,0.75);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 11px;
+    letter-spacing: .25em;
+    text-transform: uppercase;
+    color: #8a919c;
+  }
+  #sanity { color: #d6dadd; }
+  #stress { color: #cf5c5c; }
+
+  #intro, #end {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(1200px 800px at 50% 30%, rgba(0,0,0,0.35), transparent),
+                linear-gradient(180deg, #0b0d10, #14181d);
+  }
+  #end {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(6, 7, 9, 0.92);
+    z-index: 60;
+  }
+  #end .bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: .35;
+    filter: saturate(0.6) contrast(1.1);
+  }
+  #end .panel {
+    position: relative;
+    max-width: 720px;
+    width: 92%;
+    padding: 26px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(12, 14, 18, 0.92);
+    border-radius: 18px;
+    backdrop-filter: blur(14px);
+    text-align: center;
+  }
+  #end h1 {
+    font-size: 22px;
+    letter-spacing: .25em;
+    text-transform: uppercase;
+    margin: 0 0 8px;
+    color: #e7e9ee;
+  }
+  #end p {
+    color: #b8bcc6;
+    line-height: 1.55;
+    margin: 0 0 16px;
+  }
+  #end .meta {
+    font-size: 11px;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: #8a919c;
+    margin-bottom: 14px;
+  }
+  #end button {
+    appearance: none;
+    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.07);
+    color: #e7e9ee;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+  }
+  #end button:hover { background: rgba(255,255,255,0.14); }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 860px) {
+    #app {
+      grid-template-columns: 1fr;
+      grid-template-rows: 48px 1fr auto 28px;
+      grid-template-areas:
+        "header"
+        "stage"
+        "board"
+        "footer";
+    }
+    #board { max-height: 34vh; }
+  }
+</style>
+</head>
+<body>
+  <div id="intro">
+    <div class="panel">
+      <h1>The Seed Network</h1>
+      <p>Class 2 — Infiltration</p>
+      <p>Continue Rafaella’s investigation under a new identity.</p>
+      <button id="startBtn">Begin</button>
+    </div>
+  </div>
+
+  <div id="end">
+    <img class="bg" alt="bg" />
+    <div class="panel">
+      <h1 id="endTitle">End</h1>
+      <p id="endText"></p>
+      <button id="againBtn">Play Again</button>
+    </div>
+  </div>
+
+  <div id="app" class="hidden">
+    <header>
+      <h1>The Seed Network</h1>
+      <div class="pill">Investigation Active</div>
+    </header>
+
+    <section id="stage">
+      <img id="scene" alt="scene" onerror="window.__vnDebug && window.__vnDebug('scene fail: ' + this.src)" />
+      <img id="char" alt="character" onerror="window.__vnDebug && window.__vnDebug('char fail: ' + this.src)" />
+      <div id="vignette"></div>
+      <div id="dialogue">
+        <p id="speaker"></p>
+        <p id="text"></p>
+        <div id="choices"></div>
+      </div>
+      <div id="debug" style="position:absolute;top:8px;left:10px;color:#cf5c5c;font:10px monospace;background:rgba(0,0,0,.55);padding:6px;display:none;"></div>
+    </section>
+
+    <aside id="board">
+      <h2>Detective Board</h2>
+      <div id="clues">
+        <p class="empty">No clues collected yet.</p>
+      </div>
+    </aside>
+
+    <footer>
+      <div>
+        <span id="sanity">Sanity: 100</span>
+      </div>
+      <div>
+        <span id="stress">Stress: 0</span>
+      </div>
+    </footer>
+  </div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const STORY = {
+  1: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Diana Boss',
+    text: 'The fluorescent light hums. Diana reviews your forged credentials without expression. One wrong answer ends the operation before it begins.',
+    choices: [
+      { label: 'Highlight your thesis and challenge her methodology.', target: 2 },
+      { label: 'Stay modest, ask structured questions, and align with her priorities.', target: 3 },
+      { label: 'Mention a regulator deadline from Elias to show insider awareness.', target: 4 }
+    ]
+  },
+  2: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'Too sharp. She ends the interview early. "We don’t need consultants who think they know better on day one." The clock ticks as you walk out.',
+    stress: 2,
+    clue: { title: 'Diana’s Pattern', text: 'She values control over competence.' },
+    choices: [
+      { label: 'Ask Elias to plant an internal recommendation for you.', target: 5 },
+      { label: 'Approach Richard to salvage a technical opening.', target: 6 },
+      { label: 'Cut losses and leave the building immediately.', target: 'end_exposed' }
+    ]
+  },
+  3: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'She offers a junior analyst position. Probation: six months of close supervision. You accept. Inside, but far from the archive.',
+    choices: [
+      { label: 'Inspect the server room layout secretly.', target: 7 },
+      { label: 'Talk to Richard during IT setup.', target: 8 },
+      { label: 'Introduce yourself to the janitor, Mr. Agentor.', target: 9 }
+    ]
+  },
+  4: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: '"Specific knowledge for an external candidate." She assigns a monitored skills test. Four hours. Two cameras watching.',
+    stress: 1,
+    clue: { title: 'Security Posture', text: 'Unscheduled audits happen without warning.' },
+    choices: [
+      { label: 'Solve the test perfectly.', target: 10 },
+      { label: 'Leave minor errors to avoid looking overqualified.', target: 11 },
+      { label: 'Scan the internal network while the test machine is active.', target: 12 }
+    ]
+  },
+  5: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'An encrypted recommendation arrives from an unknown source. She reopens the interview with cautious interest.',
+    choices: [
+      { label: 'Claim authorship and fabricate a plausible rationale.', target: 13 },
+      { label: 'Pretend ignorance and ask for the position again.', target: 14 },
+      { label: 'Demand transparency about the source.', target: 'end_clean' }
+    ]
+  },
+  6: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'He jokes about Thursday maintenance windows when surveillance loops. His terminal stays unguarded for a few seconds.',
+    clue: { title: 'Richard’s Quirk', text: 'Maintenance window: Thursday nights.' },
+    choices: [
+      { label: 'Ask him to explain the archive structure.', target: 15 },
+      { label: 'Drop a passive keylogger during his distraction.', target: 16 },
+      { label: 'Thank him and keep distance.', target: 17 }
+    ]
+  },
+  7: {
+    scene: 'scenes/scene_corridor.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Corridor B is locked with a keycard reader. You need admin clearance or a cloned pass. The map is incomplete.',
+    clue: { title: 'Corridor B Lock', text: 'Keycard + secondary token likely required.' },
+    choices: [
+      { label: 'Find an alternate route through the janitor corridor.', target: 18 },
+      { label: 'Request access from Diana with a fake project.', target: 19 },
+      { label: 'Ask Mr. Agentor about maintenance access.', target: 20 }
+    ]
+  },
+  8: {
+    scene: 'scenes/scene_break.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'Richard dislikes Diana’s micromanagement. He hints her projects contain links to offshore transactions.',
+    choices: [
+      { label: 'Ask Richard to copy the reports quietly.', target: 21 },
+      { label: 'Store the information for later leverage over Diana.', target: 22 },
+      { label: 'Keep the relationship friendly and observe.', target: 23 }
+    ]
+  },
+  9: {
+    scene: 'scenes/scene_corridor.jpg',
+    character: 'characters/mr_agentor.png',
+    speaker: 'Mr. Agentor',
+    text: 'He hands you a maintenance schedule without a smile. "Third floor. Wednesday. Camera B doesn’t record between midnight and two."',
+    clue: { title: 'Maintenance Window', text: 'Wednesday midnight to 2 a.m. Camera B is blind.' },
+    choices: [
+      { label: 'Use the window Wednesday night.', target: 24 },
+      { label: 'Ask why he is helping.', target: 25 },
+      { label: 'Ignore it and use Richard’s cam-feed loop instead.', target: 26 }
+    ]
+  },
+  10: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'She grants full analyst access to project data. Confidential archive remains locked.',
+    choices: [
+      { label: 'Request confidential archive access now.', target: 27 },
+      { label: 'Wait for Richard’s maintenance window cover.', target: 28 },
+      { label: 'Search project folders for accidental breadcrumbs.', target: 29 }
+    ]
+  },
+  11: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'Safe, obedient employee. Your climb will be slow. Every day inside increases suspicion if you move too fast.',
+    stress: 1,
+    choices: [
+      { label: 'Work flawlessly to earn trust quickly.', target: 30 },
+      { label: 'Look for shortcuts through IT.', target: 31 },
+      { label: 'Plant administrative backdoors quietly.', target: 32 }
+    ]
+  },
+  12: {
+    scene: 'scenes/scene_surveillance.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Rafaella',
+    text: 'A silent pop-up: unscheduled audit in progress. Internal finance archive detected, but only partially accessed.',
+    choices: [
+      { label: 'Wipe traces and pretend nothing happened.', target: 33 },
+      { label: 'Download partial findings and risk exposure.', target: 34 },
+      { label: 'Redirect the audit toward Diana’s projects.', target: 35 }
+    ]
+  },
+  13: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'She buys the fabricated chain of mentors. Assigns you to logistics. Access will take months.',
+    stress: 1,
+    choices: [
+      { label: 'Execute the logistics role flawlessly to reset perception.', target: 36 },
+      { label: 'Bypass logistics and look for IT shortcuts.', target: 37 },
+      { label: 'Phish a finance clerk using your new internal email.', target: 38 }
+    ]
+  },
+  14: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'Second interview, stricter conditions. Security is heavier. Time is thinner.',
+    stress: 1,
+    choices: [
+      { label: 'Over-prepare and pass flawlessly.', target: 39 },
+      { label: 'Sabotage the room AV to create chaos and escape scrutiny.', target: 40 },
+      { label: 'Decline and retreat to Elias for a new plan.', target: 'end_burned' }
+    ]
+  },
+  15: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'Public, internal, restricted, confidential. The last one needs Diana’s biometrics plus a secondary token. "She never gives it to anyone."',
+    clue: { title: 'Archive Tiers', text: 'Confidential = biometrics + token.' },
+    choices: [
+      { label: 'Ask if the token is logged or cached anywhere.', target: 41 },
+      { label: 'Joke about stealing it and watch his reaction.', target: 42 },
+      { label: 'Keep it friendly and observe.', target: 43 }
+    ]
+  },
+  16: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'He notices a small system delay and shrugs it off. In your hidden folder, a text file appears with his typed credentials.',
+    stress: -1,
+    clue: { title: 'Richard’s Credentials', text: 'Keylogger copy retrieved.' },
+    choices: [
+      { label: 'Clone his access badge during lunch.', target: 44 },
+      { label: 'Use the credentials to browse finance files immediately.', target: 45 },
+      { label: 'Wait for the secondary token opportunity.', target: 46 }
+    ]
+  },
+  17: {
+    scene: 'scenes/scene_break.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'Richard mentions you seem too formal. Your probation becomes tightly supervised.',
+    stress: 2,
+    choices: [
+      { label: 'Volunteer for an extra project to reset perception.', target: 47 },
+      { label: 'Ask Mr. Agentor for an off-record favor.', target: 48 },
+      { label: 'Ask Elias to plant anonymous praise for your work.', target: 49 }
+    ]
+  },
+  18: {
+    scene: 'scenes/scene_corridor.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'The maintenance corridor is empty. You photograph the archive access panel model.',
+    clue: { title: 'Archive Panel Model', text: 'Photo sent to Elias.' },
+    choices: [
+      { label: 'Return Wednesday night with Elias’s cloned tool.', target: 50 },
+      { label: 'Leave and look for an insider with access.', target: 51 },
+      { label: 'Use the photo to bluff an IT support visit.', target: 52 }
+    ]
+  },
+  19: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: '"Confidential is only for leads and above." She notes your ambition. The file room remains out of reach.',
+    stress: 1,
+    choices: [
+      { label: 'Pitch a high-value suggestion to build leverage.', target: 53 },
+      { label: 'Pretend to accept and scout Richard’s terminal later.', target: 54 },
+      { label: 'Mention an external audit rumor to pressure her.', target: 55 }
+    ]
+  },
+  20: {
+    scene: 'scenes/scene_server.jpg',
+    character: 'characters/mr_agentor.png',
+    speaker: 'Mr. Agentor',
+    text: 'Wednesday midnight. Corridor empty. The archive door opens. Inside, rows of servers hum in blue pulse.',
+    clue: { title: 'Server Room Entry', text: 'Access achieved via maintenance window.' },
+    choices: [
+      { label: 'Copy the full restricted folder to a hidden USB.', target: 56 },
+      { label: 'Photograph documents only, avoiding digital traces.', target: 57 },
+      { label: 'Plant a persistent backdoor and leave quietly.', target: 58 }
+    ]
+  },
+  21: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'He agrees to copy the reports quietly. Tomorrow, a file named weather.csv lands in your inbox.',
+    clue: { title: 'Hidden Transfer', text: 'weather.csv — decrypt via Elias.' },
+    choices: [
+      { label: 'Decrypt immediately with Elias’s parser.', target: 59 },
+      { label: 'Leave it untouched until Thursday.', target: 60 },
+      { label: 'Use it as leverage with Diana.', target: 61 }
+    ]
+  },
+  22: {
+    scene: 'scenes/scene_safehouse.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'You store the information. Diana remains unaware, but time is not on your side.',
+    stress: 1,
+    choices: [
+      { label: 'Wait for a damaging internal failure.', target: 62 },
+      { label: 'Accelerate through IT access now.', target: 63 },
+      { label: 'Share with Elias to broaden the investigation.', target: 64 }
+    ]
+  },
+  23: {
+    scene: 'scenes/scene_break.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Friendly but distant. Richard later mentions you seem too formal. Suspicion rises slowly.',
+    stress: 1,
+    clue: { title: 'Perception Drift', text: 'Richard noted your formality to Diana.' },
+    choices: [
+      { label: 'Volunteer for a high-visibility task.', target: 65 },
+      { label: 'Clarify your intent with Diana directly.', target: 66 },
+      { label: 'Shift to a colder, more procedural persona.', target: 67 }
+    ]
+  },
+  24: {
+    scene: 'scenes/scene_server.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Wednesday night. The archive is open. Servers hum in blue pulse. Documents are within reach.',
+    choices: [
+      { label: 'Download everything and risk discovery.', target: 56 },
+      { label: 'Photograph specific pages only.', target: 57 },
+      { label: 'Install a backdoor instead.', target: 58 }
+    ]
+  },
+  25: {
+    scene: 'scenes/scene_corridor.jpg',
+    character: 'characters/mr_agentor.png',
+    speaker: 'Mr. Agentor',
+    text: '"Because someone should." He walks away before you can ask more. The schedule remains in your hand.',
+    clue: { title: 'Unexplained Ally', text: 'Agentor’s motives unknown.' },
+    choices: [
+      { label: 'Use the schedule Wednesday anyway.', target: 24 },
+      { label: 'Ignore the risk.', target: 17 },
+      { label: 'Leave the building and rethink.', target: 27 }
+    ]
+  },
+  26: {
+    scene: 'scenes/scene_surveillance.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'The feen loop creates a blind spot. Agentor’s schedule becomes unnecessary.',
+    clue: { title: 'Camera Loop', text: 'Thursday feed can repeat old footage.' },
+    choices: [
+      { label: 'Enter Thursday night using the loop.', target: 56 },
+      { label: 'Extend the loop to Friday for more time.', target: 57 },
+      { label: 'Use the loop to spy on Diana.', target: 58 }
+    ]
+  },
+  27: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'She considers your pitch. Grants temporary extended hours but not confidential access.',
+    choices: [
+      { label: 'Use the extra hours to map server racks.', target: 50 },
+      { label: 'Publish an internal memo to force transparency.', target: 68 },
+      { label: 'Escalate to HR with a formal access request.', target: 69 }
+    ]
+  },
+  28: {
+    scene: 'scenes/scene_server.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'Thursday night. The loop is set. Corridor B is empty. Archive room available.',
+    choices: [
+      { label: 'Enter with Agentor’s schedule as backup.', target: 56 },
+      { label: 'Rely only on Richard’s loop.', target: 57 },
+      { label: 'Install a long-term camera tap instead.', target: 58 }
+    ]
+  },
+  29: {
+    scene: 'scenes/scene_warehouse.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'You find a spreadsheet naming logistics partners. One matches Henrik’s known shell transport routes.',
+    clue: { title: 'Shell Transport Link', text: 'Found in project folders.' },
+    choices: [
+      { label: 'Cross-reference with Elias immediately.', target: 59 },
+      { label: 'Hide the file and wait for a safer moment.', target: 70 },
+      { label: 'Send the link anonymously to a journalist.', target: 71 }
+    ]
+  },
+  30: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'She promotes you to lead analyst after a flawless quarter. Trust grows. Access widens slowly.',
+    choices: [
+      { label: 'Request confidential archive access now.', target: 27 },
+      { label: 'Wait for the next management reshuffle.', target: 72 },
+      { label: 'Use your new access to silently copy internal memos.', target: 73 }
+    ]
+  },
+  31: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'He resents the shortcut. Security flags an anomaly but cannot prove it was you.',
+    choices: [
+      { label: 'Blame a third-party contractor.', target: 74 },
+      { label: 'Accept the warning and slow down.', target: 47 },
+      { label: 'Ask Richard to cover for you.', target: 75 }
+    ]
+  },
+  32: {
+    scene: 'scenes/scene_safehouse.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Backdoors are in place. The system now reports what you need, quietly.',
+    choices: [
+      { label: 'Wait for a high-value extraction moment.', target: 76 },
+      { label: 'Push deeper into restricted folders now.', target: 34 },
+      { label: 'Share access with Elias.', target: 59 }
+    ]
+  },
+  33: {
+    scene: 'scenes/scene_break.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'No traces remain. The audit passes without incident. Opportunity delayed, not lost.',
+    choices: [
+      { label: 'Wait for Richard’s window to try again.', target: 28 },
+      { label: 'Look for a physical document instead.', target: 70 },
+      { label: 'Ask Elias for a cleaner infiltration vector.', target: 59 }
+    ]
+  },
+  34: {
+    scene: 'scenes/scene_street.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Partial success. Security traces the intrusion back to a terminal you used. You are not yet identified, but the hunt has begun.',
+    stress: 3,
+    choices: [
+      { label: 'Exfiltrate and lay low.', target: 77 },
+      { label: 'Push one more file before lockdown.', target: 78 },
+      { label: 'Frame Richard using your earlier keylogger access.', target: 75 }
+    ]
+  },
+  35: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'Audit lands on her project. She is furious. Internal politics shift in your favor.',
+    choices: [
+      { label: 'Use the shift to request confidential access.', target: 27 },
+      { label: 'Distance yourself from the incident.', target: 30 },
+      { label: 'Offer to help Diana contain the fallout.', target: 79 }
+    ]
+  },
+  36: {
+    scene: 'scenes/scene_warehouse.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'Flawless execution earns cautious respect. She assigns you to a sensitive logistics audit.',
+    choices: [
+      { label: 'Use the audit to find shell routes.', target: 29 },
+      { label: 'Ask for confidential archive access as a next step.', target: 27 },
+      { label: 'Document everything for Elias.', target: 59 }
+    ]
+  },
+  37: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'IT shortcuts expose a raw API endpoint. It bypasses tier checks but leaves a visible log.',
+    clue: { title: 'Raw API Endpoint', text: 'Bypasses archive tiers; visible log risk.' },
+    choices: [
+      { label: 'Use it once for a critical file.', target: 80 },
+      { label: 'Abandon it and find a cleaner path.', target: 28 },
+      { label: 'Ask Richard to clean the logs.', target: 75 }
+    ]
+  },
+  38: {
+    scene: 'scenes/scene_street.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'The phishing attempt almost works. The clerk almost sends the token. Security attention rises.',
+    stress: 2,
+    choices: [
+      { label: 'Pull back before you are traced.', target: 33 },
+      { label: 'Retry with a spoofed sender identity.', target: 81 },
+      { label: 'Switch to physical access entirely.', target: 24 }
+    ]
+  },
+  39: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'You pass. She grants probationary analyst access. The job is yours. The real work begins after hours.',
+    choices: [
+      { label: 'Begin mapping internal networks tonight.', target: 59 },
+      { label: 'Wait for Richard’s Thursday help.', target: 28 },
+      { label: 'Locate the seed distribution records first.', target: 29 }
+    ]
+  },
+  40: {
+    scene: 'scenes/scene_street.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Chaos covers your exit. Diana is distracted by the incident. No one links it to you.',
+    choices: [
+      { label: 'Use the chaos to enter the archive.', target: 56 },
+      { label: 'Disappear and reapply later.', target: 14 },
+      { label: 'Blame an external competitor.', target: 35 }
+    ]
+  },
+  41: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: '"Sometimes." He avoids the question. The token is likely hardware-based and rarely logged.',
+    clue: { title: 'Token Nature', text: 'Likely hardware; rare logs.' },
+    choices: [
+      { label: 'Search for the physical token during off hours.', target: 24 },
+      { label: 'Clone it through social engineering.', target: 82 },
+      { label: 'Look for a software fallback instead.', target: 37 }
+    ]
+  },
+  42: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'He laughs nervously. Then he goes quiet. Trust erodes.',
+    stress: 1,
+    choices: [
+      { label: 'Apologize and rebuild rapport.', target: 43 },
+      { label: 'Push him for more information.', target: 15 },
+      { label: 'Move on and use Agentor instead.', target: 24 }
+    ]
+  },
+  43: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'He calms down but avoids the topic. The archive remains closed to you.',
+    clue: { title: 'Richard’s Limit', text: 'Avoids token topic after pressure.' },
+    choices: [
+      { label: 'Pivot to logistics research.', target: 29 },
+      { label: 'Wait for Thursday.', target: 28 },
+      { label: 'Look for another insider.', target: 48 }
+    ]
+  },
+  44: {
+    scene: 'scenes/scene_corridor.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'A cloned badge sits in your pocket. It grants movement. Archive door still needs the secondary token.',
+    clue: { title: 'Cloned Badge', text: 'Physical access expanded.' },
+    choices: [
+      { label: 'Use it Wednesday with Agentor’s window.', target: 24 },
+      { label: 'Use it Thursday with Richard’s cam loop.', target: 28 },
+      { label: 'Try the badge alone and see where it fails.', target: 83 }
+    ]
+  },
+  45: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Finance files open. Names, dates, routes. The seed network is real and larger than expected.',
+    clue: { title: 'Finance Files', text: 'Names, dates, routes confirmed.' },
+    choices: [
+      { label: 'Download the full restricted folder.', target: 56 },
+      { label: 'Photograph only, avoiding digital traces.', target: 57 },
+      { label: 'Patch a silent exfiltration job.', target: 58 }
+    ]
+  },
+  46: {
+    scene: 'scenes/scene_safehouse.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Patience is rare in this line of work. You keep watching. The token pattern remains unclear.',
+    choices: [
+      { label: 'Follow Diana to observe token handling.', target: 84 },
+      { label: 'Ask Richard one more time.', target: 41 },
+      { label: 'Search offline offices after hours.', target: 24 }
+    ]
+  },
+  47: {
+    scene: 'scenes/scene_break.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'Extra work resets perception slightly. She assigns a public logistics review. Useful, but not yet critical.',
+    choices: [
+      { label: 'Use the review to map distribution routes.', target: 29 },
+      { label: 'Ask for archive access as a next step.', target: 27 },
+      { label: 'Document logistics links for Elias.', target: 59 }
+    ]
+  },
+  48: {
+    scene: 'scenes/scene_corridor.jpg',
+    character: 'characters/mr_agentor.png',
+    speaker: 'Mr. Agentor',
+    text: 'He hands you a keycard override without explanation. "Third floor. Use it once."',
+    clue: { title: 'Override Card', text: 'Single-use; limited trust.' },
+    choices: [
+      { label: 'Use it Wednesday night for the archive.', target: 24 },
+      { label: 'Keep it for an emergency exit later.', target: 76 },
+      { label: 'Give it to Richard to analyze.', target: 15 }
+    ]
+  },
+  49: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Elias plants praise through anonymous channels. Perception improves.',
+    choices: [
+      { label: 'Request confidential access while the wind is favorable.', target: 27 },
+      { label: 'Wait for a stronger political opening.', target: 30 },
+      { label: 'Push into logistics audit to build leverage.', target: 36 }
+    ]
+  },
+  50: {
+    scene: 'scenes/scene_server.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Server racks mapped. You know where the finance archive node sits. Access remains blocked.',
+    clue: { title: 'Archive Node Location', text: 'Mapped; access still locked.' },
+    choices: [
+      { label: 'Request formal access using the map as justification.', target: 19 },
+      { label: 'Come back Wednesday night.', target: 24 },
+      { label: 'Ask Richard to unlock it remotely.', target: 15 }
+    ]
+  },
+  51: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'Richard mentions an old contractor who still has a master keycard. He does not know where the contractor is now.',
+    choices: [
+      { label: 'Trace the contractor through HR records.', target: 85 },
+      { label: 'Ignore and focus on the token instead.', target: 41 },
+      { label: 'Ask Agentor about master keys.', target: 24 }
+    ]
+  },
+  52: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'She sees through the bluff. Security is alerted. You have one chance to reset the room.',
+    stress: 2,
+    choices: [
+      { label: 'Pulled over but convincing; she relents.', target: 30 },
+      { label: 'Sabotage the AV to escape scrutiny.', target: 40 },
+      { label: 'Surrender and negotiate a clean exit.', target: 'end_clean' }
+    ]
+  },
+  53: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'She listens. Grants temporary expanded hours but not confidential access.',
+    choices: [
+      { label: 'Use the hours to map servers.', target: 50 },
+      { label: 'Force a crisis to demand access.', target: 68 },
+      { label: 'Escalate through HR.', target: 69 }
+    ]
+  },
+  54: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'Later, his terminal shows an attempt to access finance folders under your login.',
+    choices: [
+      { label: 'Confront him privately.', target: 86 },
+      { label: 'Report it to Diana as unauthorized access.', target: 87 },
+      { label: 'Ignore it.', target: 47 }
+    ]
+  },
+  55: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'She dismisses the rumor. Her protectiveness toward the company hardens.',
+    stress: 1,
+    choices: [
+      { label: 'Escalate through internal audit.', target: 88 },
+      { label: 'Look for physical proof instead.', target: 24 },
+      { label: 'Reapproach with evidence from Elias.', target: 59 }
+    ]
+  },
+  56: {
+    scene: 'scenes/scene_server.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Every restricted document is copied. The seed network is documented. Exfiltration is next.',
+    stress: -3,
+    clue: { title: 'Full Archive Copy', text: 'Restricted folder exfiltrated.' },
+    choices: [
+      { label: 'Deliver everything to Elias immediately.', target: 'win_full' },
+      { label: 'Hold a portion as insurance.', target: 'win_partial' },
+      { label: 'Risk one more night for confirmation.', target: 34 }
+    ]
+  },
+  57: {
+    scene: 'scenes/scene_server.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Photographs only. No digital traces. The evidence is fragile but can be handed to Elias securely.',
+    stress: -1,
+    clue: { title: 'Photo Evidence', text: 'Analog capture; no network trace.' },
+    choices: [
+      { label: 'Deliver photos to Elias tonight.', target: 'win_photo' },
+      { label: 'Keep photos hidden until trust is proven.', target: 76 },
+      { label: 'Try a digital copy after all.', target: 56 }
+    ]
+  },
+  58: {
+    scene: 'scenes/scene_server.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'A persistent backdoor is planted. Future access is possible without physical presence. Risk remains hidden.',
+    clue: { title: 'Persistent Backdoor', text: 'Remote access installed.' },
+    choices: [
+      { label: 'Use it to pull files remotely.', target: 78 },
+      { label: 'Leave it dormant for now.', target: 76 },
+      { label: 'Let Elias take over remotely.', target: 'win_hidden' }
+    ]
+  },
+  59: {
+    scene: 'scenes/scene_safehouse.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Elias',
+    text: 'Code arrives in fragments. “// 14.07.1994 reversed // seed route via warehouse 7 // Henrik owns the mirror shell.” Decoded: the trail leads to a warehouse.',
+    clue: { title: 'Elias Decode', text: 'Mirror shell company: warehouse 7 route.' },
+    choices: [
+      { label: 'Visit warehouse 7 alone.', target: 89 },
+      { label: 'Send Marcus a coded message.', target: 90 },
+      { label: 'Stay and continue internal infiltration.', target: 76 }
+    ]
+  },
+  60: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'Thursday passes. You decrypt weather.csv. It contains shipment IDs and dates.',
+    clue: { title: 'Shipment IDs', text: 'Dates and routes inside weather.csv.' },
+    choices: [
+      { label: 'Cross-reference with public shipping logs.', target: 91 },
+      { label: 'Pass the IDs to Elias.', target: 92 },
+      { label: 'Hide the file and wait.', target: 76 }
+    ]
+  },
+  61: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'She considers the leverage. Offers a trade: access to the logistics server for your silence.',
+    choices: [
+      { label: 'Accept and use the server access.', target: 29 },
+      { label: 'Refuse and push for confidential access.', target: 27 },
+      { label: 'Threaten exposure if she refuses both.', target: 'end_burned' }
+    ]
+  },
+  62: {
+    scene: 'scenes/scene_warehouse.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Internal failure arrives. A logistics botch exposes gaps in oversight. You point to a process flaw Diana owns.',
+    stress: -1,
+    choices: [
+      { label: 'Use the failure to request confidential access.', target: 27 },
+      { label: 'Expose the flaw anonymously.', target: 93 },
+      { label: 'Shield Diana in exchange for access.', target: 94 }
+    ]
+  },
+  63: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'IT exposes the shortcut. Richard is questioned. He does not name you, but trust frays.',
+    stress: 2,
+    choices: [
+      { label: 'Help Richard cover the gap.', target: 75 },
+      { label: 'Let him take the blame.', target: 34 },
+      { label: 'Ask Diana for a formal IT audit.', target: 27 }
+    ]
+  },
+  64: {
+    scene: 'scenes/scene_safehouse.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Elias broadens the search. Offshore nodes harden. The seed network is global.',
+    clue: { title: 'Global Network', text: 'Confirmed offshore structure.' },
+    choices: [
+      { label: 'Focus on the warehouse endpoint.', target: 89 },
+      { label: 'Continue internal access for deeper files.', target: 56 },
+      { label: 'Publish findings despite risk.', target: 95 }
+    ]
+  },
+  65: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'A high-visibility task lands. She watches closely but allows latitude.',
+    choices: [
+      { label: 'Use latitude to access restricted folders.', target: 34 },
+      { label: 'Excel publicly and request archive access.', target: 27 },
+      { label: 'Pass the task to Richard to avoid suspicion.', target: 75 }
+    ]
+  },
+  66: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'She respects directness. Trust improves slightly. Confidential access remains withheld.',
+    choices: [
+      { label: 'Ask for archive access again.', target: 27 },
+      { label: 'Offer to help with a sensitive internal review.', target: 36 },
+      { label: 'Wait for politics to shift.', target: 30 }
+    ]
+  },
+  67: {
+    scene: 'scenes/scene_safehouse.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Colder persona fits the culture. You blend. Access creeps forward.',
+    stress: -1,
+    choices: [
+      { label: 'Request confidential access now.', target: 27 },
+      { label: 'Bide time and copy memos quietly.', target: 32 },
+      { label: 'Look for a token.', target: 41 }
+    ]
+  },
+  68: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'Under public pressure, she grants you limited access to a shared drive. Confidential archive untouched.',
+    choices: [
+      { label: 'Search shared drive for breadcrumbs.', target: 29 },
+      { label: 'Push for archive access again.', target: 27 },
+      { label: 'Transfer findings to Elias.', target: 59 }
+    ]
+  },
+  69: {
+    scene: 'scenes/scene_police.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'HR delays the request. Politics slow the process.',
+    stress: 1,
+    choices: [
+      { label: 'Escalate to executive board.', target: 'end_burned' },
+      { label: 'Use IT routes instead.', target: 31 },
+      { label: 'Accept delay and wait.', target: 30 }
+    ]
+  },
+  70: {
+    scene: 'scenes/scene_warehouse.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Physical document found in a logistics locker. Shell company names match Henrik.',
+    clue: { title: 'Physical Shell Doc', text: 'Hard copy secured.' },
+    choices: [
+      { label: 'Deliver to Elias.', target: 89 },
+      { label: 'Keep as leverage.', target: 76 },
+      { label: 'Plant it on Diana to force a scandal.', target: 35 }
+    ]
+  },
+  71: {
+    scene: 'scenes/scene_street.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'The journalist publishes fragments. Henrik’s network tightens security.',
+    stress: 2,
+    choices: [
+      { label: 'Go deeper underground to continue.', target: 76 },
+      { label: 'Surface and testify.', target: 'end_clean' },
+      { label: 'Frame the leak as internal dissent.', target: 35 }
+    ]
+  },
+  72: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'Reshuffle brings a new director. She is more flexible about access.',
+    choices: [
+      { label: 'Request confidential access immediately.', target: 27 },
+      { label: 'Use the transition to plant administrative backdoors.', target: 32 },
+      { label: 'Wait for her trust to deepen.', target: 30 }
+    ]
+  },
+  73: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Internal memos accumulate quietly. A pattern emerges: shipments match offshore timestamps.',
+    clue: { title: 'Shipment Pattern', text: 'Matching offshore timestamps.' },
+    choices: [
+      { label: 'Cross-reference with Elias.', target: 59 },
+      { label: 'Publish internally to force review.', target: 88 },
+      { label: 'Keep for final exfiltration.', target: 56 }
+    ]
+  },
+  74: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'The contractor blame holds. Security moves on. You remain under lighter pressure.',
+    choices: [
+      { label: 'Take advantage of the lighter pressure to access the archive.', target: 28 },
+      { label: 'Help Richard recover professionally.', target: 75 },
+      { label: 'Press further into server rooms.', target: 50 }
+    ]
+  },
+  75: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'He covers for you. Trust between you grows. He hints that Diana keeps the token in her desk drawer after hours.',
+    clue: { title: 'Token Location', text: 'Diana’s desk drawer, after hours.' },
+    choices: [
+      { label: 'Break into Diana’s office tonight.', target: 96 },
+      { label: 'Wait for her to leave it unattended.', target: 97 },
+      { label: 'Ask Agentor to create a distraction.', target: 98 }
+    ]
+  },
+  76: {
+    scene: 'scenes/scene_safehouse.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Waiting is a strategy. Files accumulate. Patience protects the operation from reckless exposure.',
+    choices: [
+      { label: 'Wait for the next maintenance window.', target: 28 },
+      { label: 'Ask Elias for a new angle.', target: 59 },
+      { label: 'Use accumulated evidence to blackmail Diana.', target: 22 }
+    ]
+  },
+  77: {
+    scene: 'scenes/scene_street.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Exfiltration complete. You lay low. The company knows something moved but not who moved it.',
+    choices: [
+      { label: 'Deliver everything to Elias now.', target: 'win_full' },
+      { label: 'Hide the files until a safer reveal.', target: 'win_hidden' },
+      { label: 'Use the files to force Henrik into the open.', target: 95 }
+    ]
+  },
+  78: {
+    scene: 'scenes/scene_server.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'One more file pulled. Security logs spike. You have minutes before isolation.',
+    stress: 2,
+    choices: [
+      { label: 'Pull one final critical file and vanish.', target: 56 },
+      { label: 'Wipe and retreat without it.', target: 77 },
+      { label: 'Frame Richard for the intrusion.', target: 75 }
+    ]
+  },
+  79: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'She accepts your help to contain fallout. Trust increases. Access widens slightly.',
+    choices: [
+      { label: 'Request archive access as a reward.', target: 27 },
+      { label: 'Use the trust to plant a listening device.', target: 58 },
+      { label: 'Wait for a bigger crisis.', target: 30 }
+    ]
+  },
+  80: {
+    scene: 'scenes/scene_server.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Critical file retrieved. API log traces back to your terminal within minutes.',
+    stress: 2,
+    clue: { title: 'API Trace', text: 'Traced to your terminal.' },
+    choices: [
+      { label: 'Wipe and exfiltrate immediately.', target: 56 },
+      { label: 'Frame Richard with your earlier keylogger evidence.', target: 75 },
+      { label: 'Sabotage the log server to hide the trace.', target: 33 }
+    ]
+  },
+  81: {
+    scene: 'scenes/scene_street.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Spoofed identity almost succeeds. The clerk becomes suspicious.',
+    stress: 1,
+    choices: [
+      { label: 'Abort and delete all traces.', target: 33 },
+      { label: 'Continue and leak the token anyway.', target: 82 },
+      { label: 'Pivot to physical token retrieval.', target: 24 }
+    ]
+  },
+  82: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Token copied. Archive access granted. The path to the seed network opens.',
+    stress: -1,
+    clue: { title: 'Token Clone', text: 'Confidential access achieved.' },
+    choices: [
+      { label: 'Enter the archive tonight.', target: 56 },
+      { label: 'Use it to build long-term remote access.', target: 58 },
+      { label: 'Hand the token to Elias to analyze.', target: 59 }
+    ]
+  },
+  83: {
+    scene: 'scenes/scene_run.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Badge fails at the archive door. Camera records the attempt. Security notified.',
+    stress: 3,
+    choices: [
+      { label: 'Run and lay low.', target: 77 },
+      { label: 'Bluff a maintenance emergency.', target: 24 },
+      { label: 'Surrender and negotiate.', target: 'end_burned' }
+    ]
+  },
+  84: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'She never leaves the token unattended. Observation confirms paranoia, not negligence.',
+    choices: [
+      { label: 'Pivot to digital access anyway.', target: 37 },
+      { label: 'Use Richard as the path forward.', target: 41 },
+      { label: 'Look for a physical document.', target: 29 }
+    ]
+  },
+  85: {
+    scene: 'scenes/scene_police.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'HR records are sealed. Contractor name found but location unknown.',
+    choices: [
+      { label: 'Search for the contractor through public records.', target: 24 },
+      { label: 'Abandon the master-key path.', target: 41 },
+      { label: 'Ask Agentor if he knows the contractor.', target: 48 }
+    ]
+  },
+  86: {
+    scene: 'scenes/scene_it.jpg',
+    character: 'characters/richard_nerdola.png',
+    speaker: 'Richard Nerdola',
+    text: 'He admits curiosity, not betrayal. Offers to help in exchange for a small favor later.',
+    choices: [
+      { label: 'Accept and build leverage.', target: 75 },
+      { label: 'Refuse and report him.', target: 87 },
+      { label: 'Ignore and continue solo.', target: 47 }
+    ]
+  },
+  87: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'Richard is reassigned. Anyone linked to him comes under scrutiny.',
+    stress: 2,
+    choices: [
+      { label: 'Lay low and resume observation.', target: 30 },
+      { label: 'Use the scandal to demand archive access.', target: 27 },
+      { label: 'Escape before the net tightens.', target: 77 }
+    ]
+  },
+  88: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'Internal audit is initiated. The company tightens all access. Your window closes.',
+    stress: 2,
+    choices: [
+      { label: 'Exfiltrate what you have now.', target: 56 },
+      { label: 'Abort and regroup.', target: 77 },
+      { label: 'Leak the audit to external press.', target: 71 }
+    ]
+  },
+  89: {
+    scene: 'scenes/scene_warehouse7.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Warehouse 7 is empty except for crates stamped with Henrik’s shell logo. Inside: seed bags and a locked ledger.',
+    clue: { title: 'Warehouse 7', text: 'Seed bags + locked ledger inside.' },
+    choices: [
+      { label: 'Open the ledger and photograph pages.', target: 'win_photo' },
+      { label: 'Take one bag as physical proof.', target: 'win_partial' },
+      { label: 'Leave and notify Elias to continue remotely.', target: 99 }
+    ]
+  },
+  90: {
+    scene: 'scenes/scene_street.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Marcus receives the message. He replies with one coordinate: warehouse 7.',
+    choices: [
+      { label: 'Go to warehouse 7 alone.', target: 89 },
+      { label: 'Send Elias to investigate remotely.', target: 59 },
+      { label: 'Ignore the coordinate and continue inside.', target: 76 }
+    ]
+  },
+  91: {
+    scene: 'scenes/scene_warehouse.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Public shipping logs confirm route overlaps. Seed network is real and active.',
+    clue: { title: 'Route Overlap', text: 'Confirmed through public logs.' },
+    choices: [
+      { label: 'Publish the route map.', target: 95 },
+      { label: 'Deliver the map to Elias.', target: 59 },
+      { label: 'Keep it and wait for a bigger reveal.', target: 76 }
+    ]
+  },
+  92: {
+    scene: 'scenes/scene_safehouse.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Elias',
+    text: 'He maps the IDs. The network’s core is a warehouse disguised as agricultural storage.',
+    clue: { title: 'Network Core', text: 'Warehouse disguised as storage.' },
+    choices: [
+      { label: 'Visit the warehouse.', target: 89 },
+      { label: 'Monitor it remotely.', target: 99 },
+      { label: 'Ignore and continue inside.', target: 76 }
+    ]
+  },
+  93: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Anonymous exposure triggers an internal review. Diana is blamed. The archive becomes temporarily unsupervised.',
+    choices: [
+      { label: 'Use the unsupervised window to enter.', target: 56 },
+      { label: 'Stay away and avoid suspicion.', target: 30 },
+      { label: 'Expose Diana deliberately to force more chaos.', target: 35 }
+    ]
+  },
+  94: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'She accepts your shield. Confidential access is granted as a professional courtesy.',
+    choices: [
+      { label: 'Enter the archive tonight.', target: 56 },
+      { label: 'Use access to plant listening devices.', target: 58 },
+      { label: 'Examine logistics files only.', target: 29 }
+    ]
+  },
+  95: {
+    scene: 'scenes/scene_street.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Publishing forces Henrik’s hand. The seed network scrambles. Some links break, others harden.',
+    stress: 2,
+    choices: [
+      { label: 'Publish more immediately.', target: 'win_full' },
+      { label: 'Wait to capture the harder links.', target: 76 },
+      { label: 'Go to warehouse 7 with physical proof.', target: 89 }
+    ]
+  },
+  96: {
+    scene: 'scenes/scene_server.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'The token is in her drawer. You copy it quietly. Archive access granted. Footsteps approach.',
+    stress: 2,
+    clue: { title: 'Token Copied', text: 'Confidential access now active.' },
+    choices: [
+      { label: 'Enter the archive immediately.', target: 56 },
+      { label: 'Hide and leave the building.', target: 77 },
+      { label: 'Use the token to set a remote trap.', target: 58 }
+    ]
+  },
+  97: {
+    scene: 'scenes/scene_office.jpg',
+    character: 'characters/diana_boss.png',
+    speaker: 'Diana Boss',
+    text: 'She leaves it unattended for ten seconds. Enough.',
+    clue: { title: 'Token Taken', text: 'Taken during unattended moment.' },
+    choices: [
+      { label: 'Enter the archive tonight.', target: 56 },
+      { label: 'Clone it before returning.', target: 82 },
+      { label: 'Return it and wait for a safer moment.', target: 76 }
+    ]
+  },
+  98: {
+    scene: 'scenes/scene_corridor.jpg',
+    character: 'characters/mr_agentor.png',
+    speaker: 'Mr. Agentor',
+    text: 'He creates a distraction. Diana leaves her office for ten minutes.',
+    choices: [
+      { label: 'Take the token.', target: 97 },
+      { label: 'Search her desk for other evidence.', target: 99 },
+      { label: 'Abort to avoid overreach.', target: 76 }
+    ]
+  },
+  99: {
+    scene: 'scenes/scene_surveillance.jpg',
+    character: 'characters/rafaella.png',
+    speaker: 'Rafaella',
+    text: 'Remote monitoring completes the picture. The network map is finalized.',
+    choices: [
+      { label: 'Deliver everything to Elias.', target: 'win_full' },
+      { label: 'Keep one layer back for leverage.', target: 'win_hidden' },
+      { label: 'Go to warehouse 7 with full proof.', target: 'win_photo' }
+    ]
+  }
+};
+
+const ENDS = {
+  end_exposed: {
+    scene: 'scenes/scene_server.jpg',
+    speaker: '— Result',
+    text: 'Security flags your profile. Operation exposed. Rafaella disappears before they arrive, but the network remains untouched.'
+  },
+  end_clean: {
+    scene: 'scenes/scene_train.jpg',
+    speaker: '— Result',
+    text: 'You abandon the infiltration and surface cleanly. No evidence ties you to the company. The seed network continues, but you live to fight.'
+  },
+  end_burned: {
+    scene: 'scenes/scene_shattered.jpg',
+    speaker: '— Result',
+    text: 'Too much heat. Your identity is burned inside the company. Henrik’s network tightens. Some investigations end quietly.'
+  }
+};
+
+const WIN = {
+  win_full: {
+    scene: 'scenes/scene_usb.jpg',
+    speaker: '— Result',
+    text: 'Full archive exfiltrated. Elias reconstructs the network. Henrik’s shell routes collapse under coordinated raids. Rafaella’s name never appears in the report.'
+  },
+  win_photo: {
+    scene: 'scenes/scene_photos.jpg',
+    speaker: '— Result',
+    text: 'Analog evidence delivered. Slow, quiet, undeniable. The warehouse is raided. Seeds and ledgers become public record.'
+  },
+  win_hidden: {
+    scene: 'scenes/scene_hack.jpg',
+    speaker: '— Result',
+    text: 'A persistent backdoor keeps the network visible from the shadows. Rafaella walks away clean. Evidence remains useful for years.'
+  },
+  win_partial: {
+    scene: 'scenes/scene_warehouse7.jpg',
+    speaker: '— Result',
+    text: 'Partial proof enough to trigger an investigation. Warehouse inspected. Henrik’s defenses harden but cracks show.'
+  }
+};
+
+let sanity = 100;
+let stress = 0;
+let current = null;
+let clues = [];
+
+function setSanity(n) {
+  sanity = Math.max(0, Math.min(100, n));
+  $('sanity').textContent = 'Sanity: ' + sanity;
+  if (sanity <= 0) renderEnd('end_burned');
+}
+
+function addStress(n) {
+  stress += n;
+  $('stress').textContent = 'Stress: ' + stress;
+  setSanity(sanity - n);
+}
+
+function addClue(title, text) {
+  if (clues.find(c => c.title === title)) return;
+  clues.push({ title, text });
+  const box = $('clues');
+  const el = document.createElement('div');
+  el.className = 'clue';
+  el.innerHTML = '<div class="icon">🔎</div><div class="content"><strong>' + title + '</strong>' + text + '</div>';
+  if (clues.length === 1) box.innerHTML = '';
+  box.appendChild(el);
+}
+
+function renderScene(data) {
+  const sceneImg = $('scene');
+  const charImg = $('char');
+  const speaker = $('speaker');
+  const text = $('text');
+  const choices = $('choices');
+
+  sceneImg.src = data.scene || '';
+  charImg.classList.add('hidden');
+  if (data.character) {
+    charImg.src = data.character;
+    charImg.classList.remove('hidden');
+  }
+  speaker.textContent = '— ' + (data.speaker || '');
+  text.textContent = data.text || '';
+  choices.innerHTML = '';
+
+  if (data.clue) addClue(data.clue.title, data.clue.text);
+  if (data.stress) addStress(data.stress);
+
+  if (data.choices && data.choices.length) {
+    data.choices.forEach((choice) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.textContent = choice.label;
+      btn.addEventListener('click', () => {
+        const target = choice.target;
+        if (typeof target === 'string' && target.startsWith('end_')) {
+          renderEnd(target);
+        } else if (typeof target === 'string' && target.startsWith('win_')) {
+          renderWin(target);
+        } else if (typeof target === 'number') {
+          current = target;
+          renderScene(STORY[target]);
+        }
+      });
+      choices.appendChild(btn);
+    });
+  }
+}
+
+function renderEnd(key) {
+  const data = ENDS[key];
+  current = null;
+  showEnd('End: ' + key.replace('end_', '').toUpperCase(), data.text, data.scene);
+}
+
+function renderWin(key) {
+  const data = WIN[key];
+  current = null;
+  showEnd('Case Solved: ' + key.replace('win_', '').toUpperCase(), data.text, data.scene);
+}
+
+function showEnd(title, text, scene) {
+  $('app').classList.add('hidden');
+  $('end').classList.remove('hidden');
+  document.querySelector('#end h1').textContent = title;
+  $('endText').textContent = text;
+  if (scene) {
+    const bg = document.createElement('img');
+    bg.src = scene;
+    bg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35;';
+    const wrap = $('end');
+    if (!wrap.querySelector('img')) wrap.prepend(bg);
+  }
+}
+
+$('startBtn').addEventListener('click', () => {
+  $('intro').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  sanity = 100; stress = 0; clues = [];
+  $('sanity').textContent = 'Sanity: 100';
+  $('stress').textContent = 'Stress: 0';
+  current = 1;
+  renderScene(STORY[1]);
+});
+
+$('againBtn').addEventListener('click', () => {
+  $('end').classList.add('hidden');
+  $('intro').classList.remove('hidden');
+  const old = $('end').querySelector('img');
+  if (old) old.remove();
+});
+</script>
+</body>
+</html>

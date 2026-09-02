@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 4 — Memory & Retention</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #e8e8e8; background: #0a0a0a; }
+  #app { min-height: 100vh; display: flex; flex-direction: column; }
+  #sceneContainer { position: fixed; inset: 0; z-index: 0; }
+  #sceneImage { width: 100%; height: 100%; object-fit: cover; display: none; }
+  #sceneGradient { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,10,10,0.2), rgba(10,10,10,0.92) 70%); }
+  #ui { position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; padding: 40px 32px 32px; max-width: 960px; margin: 0 auto; width: 100%; }
+  .page { display: none; flex-direction: column; flex: 1; animation: fadeIn 0.25s ease; }
+  .page.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .label { font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; color: #888; margin-bottom: 10px; font-weight: 500; }
+  h1 { font-size: 34px; line-height: 1.15; color: #ffffff; margin-bottom: 14px; font-weight: 600; letter-spacing: -0.01em; }
+  p { line-height: 1.6; color: #c8c8c8; font-size: 16px; margin-bottom: 16px; }
+  .lead { font-size: 17px; color: #d4d4d4; line-height: 1.6; max-width: 760px; }
+  .prompt { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 18px 20px; border-radius: 10px; color: #f0f0f0; font-size: 16px; line-height: 1.6; margin: 18px 0 24px; max-width: 760px; backdrop-filter: blur(4px); }
+  .prompt::before { content: "→ "; color: #fff; font-weight: 500; }
+  #videoCard { background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 3px; margin: 18px 0 14px; max-width: 720px; backdrop-filter: blur(8px); cursor: pointer; position: relative; }
+  #videoCard:hover { border-color: rgba(255,255,255,0.25); }
+  #videoWrap { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px; background: #000; }
+  #videoWrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+  #videoThumb { width: 100%; height: auto; border-radius: 10px; display: block; }
+  #playOverlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.35); border-radius: 10px; pointer-events: none; }
+  #playOverlay::after { content: "▶"; font-size: 72px; color: #fff; opacity: 0.9; text-shadow: 0 2px 12px rgba(0,0,0,0.6); }
+  .note { font-size: 13px; color: #888; margin-top: 8px; }
+  .note a { color: #d4d4d4; text-decoration: underline; text-underline-offset: 2px; }
+  .choices { display: flex; flex-wrap: wrap; gap: 10px; max-width: 760px; }
+  button.choice { background: rgba(255,255,255,0.06); color: #e8e8e8; border: 1px solid rgba(255,255,255,0.12); padding: 14px 18px; border-radius: 8px; cursor: pointer; font-size: 15px; text-align: left; transition: all 0.15s; flex: 1 1 220px; font-family: inherit; }
+  button.choice:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.25); }
+  .nav { margin-top: auto; padding-top: 24px; display: flex; gap: 10px; flex-wrap: wrap; }
+  button.primary { background: #ffffff; color: #0a0a0a; border: 0; padding: 14px 22px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px; transition: background 0.15s; font-family: inherit; }
+  button.primary:hover { background: #d4d4d4; }
+  .meta { margin-top: auto; padding-top: 28px; font-size: 12px; color: #666; letter-spacing: 0.05em; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sceneContainer">
+    <img id="sceneImage" alt="">
+    <div id="sceneGradient"></div>
+  </div>
+  <div id="ui"></div>
+</div>
+<script>
+(function(){
+  const PATH = "scenes/";
+  const SCENES = {
+    intro: "scene_01.webp",
+    q1: "scene_02.webp",
+    q2: "scene_03.webp",
+    q3: "scene_04.webp",
+    q4: "scene_05.webp",
+    q5: "scene_06.webp",
+    q6: "scene_07.webp",
+    q7: "scene_08.webp",
+    q8: "scene_09.webp",
+    q9: "scene_10.webp",
+    end: "scene_01.webp"
+  };
+  const LABELS = {
+    intro: "Class 4",
+    q1: "Conversation 1",
+    q2: "Conversation 2",
+    q3: "Conversation 3",
+    q4: "Conversation 4",
+    q5: "Conversation 5",
+    q6: "Conversation 6",
+    q7: "Conversation 7",
+    q8: "Conversation 8",
+    q9: "Conversation 9",
+    end: "Summary"
+  };
+  const ui = document.getElementById("ui");
+  const img = document.getElementById("sceneImage");
+  function setScene(key){
+    const src = PATH + (SCENES[key] || SCENES.intro);
+    img.src = src;
+    img.style.display = "block";
+  }
+  function render(node){
+    ui.innerHTML = "";
+    const page = document.createElement("div");
+    page.className = "page active";
+    let html = `<div class="label">${LABELS[node.key] || ""}</div>`;
+    html += node.html;
+    page.innerHTML = html;
+    ui.appendChild(page);
+    if (node.choices && node.choices.length){
+      const wrap = document.createElement("div");
+      wrap.className = "choices";
+      node.choices.forEach(c=>{
+        const b = document.createElement("button");
+        b.className = "choice";
+        b.textContent = c.label;
+        b.onclick = ()=> go(c.to);
+        wrap.appendChild(b);
+      });
+      page.appendChild(wrap);
+    }
+    if (node.nav){
+      const wrap = document.createElement("div");
+      wrap.className = "nav";
+      node.nav.forEach(n=>{
+        const b = document.createElement("button");
+        b.className = n.primary ? "primary" : "choice";
+        b.textContent = n.label;
+        b.onclick = ()=> go(n.to);
+        wrap.appendChild(b);
+      });
+      page.appendChild(wrap);
+    }
+  }
+  const STORY = {
+    intro: {
+      key: "intro",
+      html: `<h1>Memory & Retention</h1>
+        <p class="lead">Today we will watch a short video about how memories are stored inside the brain. After that, we will have a guided conversation about your own memory experiences. There are no right or wrong answers — the goal is to practice English while sharing your story.</p>
+        <div id="videoCard" onclick="document.getElementById('videoWrap').style.display='block';document.getElementById('videoThumb').style.display='none';document.getElementById('playOverlay').style.display='none';">
+          <img id="videoThumb" src="https://i.ytimg.com/vi/PqtggjVAi8M/maxresdefault.jpg" alt="Video thumbnail" style="display:block;">
+          <div id="videoWrap" style="display:none;"><iframe src="https://www.youtube-nocookie.com/embed/PqtggjVAi8M" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+          <div id="playOverlay"></div>
+        </div>
+        <p class="note">Click the image above to play. If playback fails, <a href="https://www.youtube.com/watch?v=PqtggjVAi8M" target="_blank" rel="noopener">open it on YouTube</a>.</p>`,
+      nav: [{label:"Start conversation", to:"q1", primary:true}]
+    },
+    q1: {
+      key: "q1",
+      html: `<h1>The video says memories are not perfect recordings of the past. Every time you remember something, it can change a little.</h1>
+        <p class="prompt">Have you ever remembered an event and, after many years, realized it was very different from what you originally thought? Tell me about it.</p>`,
+      nav: [{label:"Next question", to:"q2", primary:true}]
+    },
+    q2: {
+      key: "q2",
+      html: `<h1>The video explains that neurons that fire together become stronger — almost like friends inside your brain.</h1>
+        <p class="prompt">Think about a skill or subject you learned very well. What did you do in your routine that made that memory so strong?</p>`,
+      nav: [{label:"Next question", to:"q3", primary:true}]
+    },
+    q3: {
+      key: "q3",
+      html: `<h1>The hippocampus acts like a librarian or archivist — it saves a blueprint of the memory and stores it with related experiences.</h1>
+        <p class="prompt">In your opinion, what makes a memory easier to recall: repetition, strong emotion, or something completely new? Why?</p>`,
+      nav: [{label:"Next question", to:"q4", primary:true}]
+    },
+    q4: {
+      key: "q4",
+      html: `<h1>Old memories can fade over time if they are not revisited. That is why you probably do not remember the exact taste of a meal from months ago.</h1>
+        <p class="prompt">What kind of childhood memories feel impossible for you to forget? Why do you think they stayed so vivid?</p>`,
+      nav: [{label:"Next question", to:"q5", primary:true}]
+    },
+    q5: {
+      key: "q5",
+      html: `<h1>Novelty helps the brain store memories much better than repetitive, everyday moments.</h1>
+        <p class="prompt">Describe a memory that stayed strong because it was surprising, unusual, or completely new to you.</p>`,
+      nav: [{label:"Next question", to:"q6", primary:true}]
+    },
+    q6: {
+      key: "q6",
+      html: `<h1>When you recall a memory, your brain changes it slightly by mixing in your current mood and new context. The memory becomes a new version of itself.</h1>
+        <p class="prompt">Have you ever told a story so many times that it changed compared to what actually happened? What changed?</p>`,
+      nav: [{label:"Next question", to:"q7", primary:true}]
+    },
+    q7: {
+      key: "q7",
+      html: `<h1>Memories are connected to cues like smells, sounds, words, or images. One small cue can bring an entire moment back to life.</h1>
+        <p class="prompt">What is your strongest memory cue? A smell, a song, a word, or a picture that instantly takes you back to a specific moment?</p>`,
+      nav: [{label:"Next question", to:"q8", primary:true}]
+    },
+    q8: {
+      key: "q8",
+      html: `<h1>The more often you recall a memory, the more it can drift from the original event — even important core memories.</h1>
+        <p class="prompt">Is there an important memory that feels different depending on when or how you think about it?</p>`,
+      nav: [{label:"Next question", to:"q9", primary:true}]
+    },
+    q9: {
+      key: "q9",
+      html: `<h1>Memory is closely tied to identity. The stories you remember shape who you are and guide your future decisions.</h1>
+        <p class="prompt">Which memory from your past do you think has shaped who you are today? Why is it so important?</p>`,
+      nav: [{label:"Finish conversation", to:"end", primary:true}]
+    },
+    end: {
+      key: "end",
+      html: `<h1>Great conversation!</h1>
+        <p class="lead">You just practiced key ideas about memory, identity, emotion, and learning. Well done.</p>
+        <p class="note">Replay the video: <a href="https://www.youtube.com/watch?v=PqtggjVAi8M" target="_blank" rel="noopener">How Are Memories Stored Inside Your Brain?</a></p>`,
+      nav: [{label:"Back to start", to:"intro", primary:true}]
+    }
+  };
+  let current = "intro";
+  function go(key){
+    current = key;
+    setScene(key);
+    render(STORY[key]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  go("intro");
+})();
+</script>
+</body>
+</html>

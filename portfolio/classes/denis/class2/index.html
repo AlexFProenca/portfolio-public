@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Travel English — Reading Comprehension</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: #0a0f14;
+    color: #e8eaed;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow-y: auto;
+    user-select: none;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 16px;
+  }
+  .header {
+    width: 100%; max-width: 980px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .title { font-size: 18px; font-weight: 800; letter-spacing: .5px; }
+  .score { font-size: 14px; color: #9aa7b2; letter-spacing: 1px; }
+  .stage {
+    position: relative;
+    width: 100%; max-width: 980px;
+    aspect-ratio: 16 / 9;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: #000;
+  }
+  .scene-bg {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover; display: block;
+  }
+  .scene-gradient {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    background: #0b141c;
+  }
+  .scene-gradient .label {
+    font-size: 28px; font-weight: 800; color: #dce6ee; text-align: center;
+    letter-spacing: 1px; text-transform: uppercase; opacity: .35;
+  }
+  .vignette {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.25) 0%, transparent 35%, transparent 55%, rgba(0,0,0,0.75) 100%),
+      radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.45) 100%);
+    pointer-events: none;
+  }
+  .passage-card {
+    position: absolute; left: 12px; right: 12px; top: 12px;
+    background: rgba(8,12,18,0.78);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 14px;
+    min-height: 90px;
+  }
+  .passage-label {
+    font-size: 11px; color: #9aa7b2; letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .passage {
+    font-size: 15px; line-height: 1.35; color: #f4f5f7;
+  }
+  .question-card {
+    position: absolute; left: 12px; right: 12px; bottom: 12px;
+    background: rgba(8,12,18,0.82);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 14px;
+    min-height: 120px;
+  }
+  .counter {
+    font-size: 11px; color: #9aa7b2; letter-spacing: 1.4px; text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .qtext {
+    font-size: 16px; line-height: 1.35; color: #f4f5f7;
+  }
+  .choices {
+    width: 100%; max-width: 980px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .choice {
+    height: 60px; border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    color: #f1f3f5; font-size: 14px; font-weight: 700;
+    cursor: pointer; text-align: center;
+    transition: transform .12s ease, background .2s ease, box-shadow .2s ease;
+  }
+  .choice:hover { transform: translateY(-3px); background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)); box-shadow: 0 10px 24px rgba(0,0,0,0.4); }
+  .choice:active { transform: translateY(1px) scale(0.98); }
+  .choice.disabled { opacity: .55; pointer-events: none; }
+  .choice.correct { border-color: #00e6b8; color: #b9f6ea; box-shadow: 0 0 20px rgba(0,230,184,0.25); }
+  .choice.wrong { border-color: #ff6b6b; color: #fcc; box-shadow: 0 0 20px rgba(255,107,107,0.25); }
+  .progress { width: 100%; max-width: 980px; display: flex; gap: 6px; }
+  .pip {
+    height: 8px; flex: 1; border-radius: 4px;
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.14);
+  }
+  .pip.done { background: linear-gradient(90deg, #00e6b8, #00ffc8); border-color: transparent; box-shadow: 0 0 10px rgba(0,255,200,0.35); }
+  .footer { font-size: 11px; color: #5b6572; letter-spacing: 1px; }
+  .result {
+    position: absolute; inset: 0;
+    background: rgba(4,8,14,0.85);
+    backdrop-filter: blur(12px);
+    display: none; align-items: center; justify-content: center; flex-direction: column; gap: 14px;
+    padding: 24px; text-align: center;
+  }
+  .result h2 { margin: 0; font-size: 28px; }
+  .result p { margin: 0; color: #c8cdd4; }
+  .result button {
+    height: 52px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.14);
+    background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+    color: #f4f5f7; font-weight: 800; letter-spacing: .5px;
+    padding: 0 18px; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">Travel English — Reading Comprehension</div>
+    <div class="score"><span id="pts">0</span>/<span id="max">15</span></div>
+  </div>
+
+  <div class="stage">
+    <div class="scene-gradient" id="sceneGradient"><div class="label" id="sceneLabel">Travel</div></div>
+    <img id="scene" class="scene-bg" style="display:none;" alt="scene">
+    <div class="vignette"></div>
+    <div class="passage-card" id="passageCard">
+      <div class="passage-label">Dialogue / Situation</div>
+      <div class="passage" id="passage">Initializing...</div>
+    </div>
+    <div class="question-card">
+      <div class="counter" id="counter">Q 1 / 15</div>
+      <div class="qtext" id="qtext">Initializing...</div>
+    </div>
+    <div class="result" id="result">
+      <h2 id="rtitle">Result</h2>
+      <p id="rtext">Score text</p>
+      <button id="replay">Play Again</button>
+    </div>
+  </div>
+
+  <div class="progress" id="progress"></div>
+  <div class="choices" id="choices"></div>
+  <div class="footer">DENIS — Travel English · Reading Comprehension</div>
+
+<script>
+(function() {
+  'use strict';
+  var $ = function(id) { return document.getElementById(id); };
+
+  var SCENE_LABELS = [
+    'Airport check-in','Passport control','Boarding gate','Hotel reception',
+    'Restaurant order','Asking directions','At the market','Bus ticket',
+    'Metro station','Beach bar','Train station','Taxi ride',
+    'Museum entrance','Coffee shop','Airport baggage'
+  ];
+
+  var ITEMS = [
+    {passage:"Agent: Good morning. May I see your passport? Denis: Sure, here you are. Agent: Thank you. Where are you flying to? Denis: I am going to Lisbon.", question:"Why does Denis show the agent his passport?", options:["To prove his identity","To buy a ticket","To get a taxi","To find the gate"], answer:0, scene:'scenes/scene_01.webp'},
+    {passage:"Officer: What is the purpose of your trip? Denis: I am on vacation. Officer: How long will you stay? Denis: One week.", question:"What does the officer want to know?", options:["Denis's destination","Denis's luggage","Denis's trip purpose","Denis's seat number"], answer:2, scene:'scenes/scene_02.webp'},
+    {passage:"Announcer: Final boarding call for flight 204 to Lisbon. Denis runs with his backpack and shows the gate agent his boarding pass.", question:"What can we infer about Denis?", options:["He already checked in earlier","He is at the wrong airport","He lost his luggage","He does not have a passport"], answer:0, scene:'scenes/scene_03.webp'},
+    {passage:"Receptionist: Hello, do you have a reservation? Denis: No, I don't. Do you have a room for tonight? Receptionist: Yes, a single room with a city view.", question:"Why does Denis ask for a single room?", options:["He does not like people","He travels alone","He wants a cheaper price","He needs space for a group"], answer:1, scene:'scenes/scene_04.webp'},
+    {passage:"Waiter: Are you ready to order? Denis: Yes, I would like fish and a salad, please. Waiter: Anything to drink? Denis: Sparkling water, thank you.", question:"What can we infer about Denis?", options:["He wants a light meal","He is very hungry","He does not like water","He wants dessert first"], answer:0, scene:'scenes/scene_05.webp'},
+    {passage:"Denis: Excuse me, how do I get to the museum? Local: Go straight, then turn left at the pharmacy. It's on the right.", question:"Which word does Denis use to ask for help politely?", options:["Hey","Listen","Excuse me","Stop"], answer:2, scene:'scenes/scene_06.webp'},
+    {passage:"Seller: Can I help you? Denis: Yes, how much are these apples? Seller: Two euros per kilo.", question:"Why is Denis at the market?", options:["To meet a friend","To buy fruit","To take photos","To get directions"], answer:1, scene:'scenes/scene_07.webp'},
+    {passage:"Driver: Where to? Denis: To the hotel, please. Driver: That'll be eight euros.", question:"Why does the driver say 'that'll be eight euros'?", options:["Because the hotel costs eight euros","Because Denis is very rich","Because Denis gave him a tip","Because the trip costs eight euros"], answer:3, scene:'scenes/scene_08.webp'},
+    {passage:"Worker: Tickets, please. Denis gives one ticket. Worker: Thank you. Next stop: Central Station.", question:"What does Denis use to prove he paid for the ride?", options:["A map","A ticket","A card","Coins"], answer:1, scene:'scenes/scene_09.webp'},
+    {passage:"Bartender: What can I get you? Denis: A cold beer, please. Bartender: Here you go. Enjoy the beach.", question:"What can we infer about the place?", options:["It is a hotel lobby","It is a beach bar","It is a train station","It is a museum"], answer:1, scene:'scenes/scene_10.webp'},
+    {passage:"Attendant: Your train to Porto leaves at 9:15 from platform 3. Denis: Thank you. Is it on time? Attendant: Yes, it is.", question:"What does Denis want to confirm?", options:["The platform number","The train destination","If the train is on time","If the train has food"], answer:2, scene:'scenes/scene_11.webp'},
+    {passage:"Driver: Do you need help with bags? Denis: Yes, please. I have one suitcase. Driver: No problem. Put it in the trunk.", question:"Why does Denis accept help with the bag?", options:["He likes talking","He has one suitcase","He wants to chat","He pays less"], answer:1, scene:'scenes/scene_12.webp'},
+    {passage:"Guide: Tickets are twelve euros. Denis: Two tickets, please. Guide: Here you are. The exhibition is on the second floor.", question:"What does Denis learn from the guide?", options:["The ticket price","The museum closes soon","The museum is free","The location of the exhibition"], answer:3, scene:'scenes/scene_13.webp'},
+    {passage:"Barista: What would you like? Denis: A cappuccino, please. Barista: For here or to go? Denis: To go, thanks.", question:"What can we infer about Denis?", options:["He wants to drink it at home","He wants to add sugar","He needs a receipt","He wants a pastry"], answer:0, scene:'scenes/scene_14.webp'},
+    {passage:"Agent: Did you pack your own bags? Denis: Yes, I did. Agent: Do you have any liquids? Denis: No, I don't.", question:"Why does the agent ask about liquids?", options:["Because liquids are free","Because liquids are restricted","Because she likes liquids","Because she wants a drink"], answer:1, scene:'scenes/scene_15.webp'}
+  ];
+
+  var SCENE_LABELS = [
+    'Airport check-in','Passport control','Boarding gate','Hotel reception',
+    'Restaurant order','Asking directions','At the market','Taxi ride',
+    'Bus ticket','Beach bar','Train station','Taxi help',
+    'Museum entrance','Coffee shop','Airport baggage'
+  ];
+
+  var state = { idx: 0, score: 0, answered: false };
+
+  function setScene(url, idx) {
+    var grad = $('sceneGradient');
+    var label = $('sceneLabel');
+    var img = $('scene');
+    if (label) label.textContent = SCENE_LABELS[idx] || 'scene';
+    if (grad) grad.style.display = 'grid';
+    if (img) img.style.display = 'none';
+    if (!url) return;
+    var test = new window.Image();
+    test.onload = function() {
+      if (grad) grad.style.display = 'none';
+      if (img) { img.style.display = 'block'; img.src = url; }
+    };
+    test.onerror = function() {
+      if (grad) grad.style.display = 'grid';
+      if (img) img.style.display = 'none';
+    };
+    test.src = url;
+  }
+
+  function render() {
+    try {
+      var item = ITEMS[state.idx];
+      $('max').textContent = String(ITEMS.length);
+      $('pts').textContent = String(state.score);
+      $('counter').textContent = 'Q ' + (state.idx + 1) + ' / ' + ITEMS.length;
+      $('qtext').textContent = item.question;
+      $('passage').textContent = item.passage;
+      setScene(item.scene, state.idx);
+      $('choices').innerHTML = item.options.map(function(o, i) {
+        return '<div class="choice" data-i="' + i + '">' + String.fromCharCode(65 + i) + '. ' + o + '</div>';
+      }).join('');
+      state.answered = false;
+    } catch (e) {
+      console.error(e);
+      var q = $('qtext');
+      if (q) q.textContent = 'Error loading question.';
+    }
+  }
+
+  function ensurePips() {
+    var p = $('progress');
+    if (!p || p.children.length) return;
+    ITEMS.forEach(function(_, i) {
+      var d = document.createElement('div');
+      d.className = 'pip';
+      d.id = 'pip-' + i;
+      p.appendChild(d);
+    });
+  }
+
+  function pick(i) {
+    if (state.answered) return;
+    state.answered = true;
+    var item = ITEMS[state.idx];
+    var correct = i === item.answer;
+    var choices = document.querySelectorAll('.choice');
+    choices.forEach(function(el, j) {
+      el.classList.add('disabled');
+      if (j === item.answer) el.classList.add('correct');
+      else if (j === i && !correct) el.classList.add('wrong');
+    });
+    var pip = $('pip-' + state.idx);
+    if (pip) pip.className = 'pip done' + (correct ? ' hit' : '');
+    if (correct) {
+      state.score += 1;
+      $('pts').textContent = String(state.score);
+    }
+    setTimeout(function() {
+      state.idx += 1;
+      if (state.idx >= ITEMS.length) showResult();
+      else render();
+    }, correct ? 900 : 1500);
+  }
+
+  function showResult() {
+    var pct = Math.round((state.score / ITEMS.length) * 100);
+    $('result').style.display = 'flex';
+    $('rtitle').textContent = 'Quiz Complete';
+    $('rtext').textContent = state.score + ' / ' + ITEMS.length + ' (' + pct + '%)';
+  }
+
+  $('choices').addEventListener('click', function(e) {
+    var el = e.target.closest('.choice');
+    if (!el) return;
+    pick(Number(el.dataset.i));
+  });
+
+  $('replay').addEventListener('click', function() {
+    state.idx = 0;
+    state.score = 0;
+    state.answered = false;
+    $('result').style.display = 'none';
+    render();
+  });
+
+  function boot() {
+    ensurePips();
+    render();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

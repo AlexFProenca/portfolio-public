@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 5 — The Courier's Message</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: #07080c;
+    color: #e6e8ec;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow-y: auto;
+    user-select: none;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px;
+  }
+  .stage {
+    position: relative;
+    width: 100%;
+    max-width: 960px;
+    aspect-ratio: 16 / 9;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.55);
+    border: 2px solid rgba(255,255,255,0.08);
+    background: #000;
+  }
+  .scene-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    background: #000;
+  }
+  .character {
+    position: absolute;
+    bottom: 12px;
+    height: auto;
+    width: auto;
+    max-width: 320px;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 18px rgba(0,0,0,0.5));
+    pointer-events: none;
+    transition: transform .35s ease, opacity .35s ease;
+  }
+  .character.pos-left { left: 0; right: auto; }
+  .character.pos-right { right: 0; left: auto; }
+  .character.hidden { opacity: 0; transform: scale(1); }
+  .vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.55) 100%);
+    pointer-events: none;
+  }
+  .dialogue {
+    position: absolute;
+    left: 12px; right: 12px; bottom: 12px;
+    background: rgba(8,10,16,0.82);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 14px;
+    min-height: 110px;
+  }
+  .speaker {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+    color: #8f99a6;
+    margin-bottom: 6px;
+  }
+  .text {
+    font-size: 16px;
+    line-height: 1.45;
+    color: #f1f1f3;
+  }
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    width: 100%;
+    max-width: 960px;
+  }
+  .choice {
+    height: 64px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    color: #f1f1f3;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    text-align: center;
+    transition: transform .12s ease, background .2s ease, box-shadow .2s ease;
+  }
+  .choice:hover {
+    transform: translateY(-3px);
+    background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+    box-shadow: 0 10px 24px rgba(0,0,0,0.4);
+  }
+  .choice:active { transform: translateY(1px) scale(0.98); }
+  .footer {
+    font-size: 11px;
+    color: #5a6472;
+    letter-spacing: 1px;
+  }
+  .intro-overlay {
+    position: fixed;
+    inset: 0;
+    background: #07080c;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 24px;
+    z-index: 50;
+  }
+  .intro-title { font-size: 28px; font-weight: 800; color: #f1f1f3; margin: 0; text-align: center; line-height: 1.2; }
+  .intro-sub { max-width: 640px; color: #c8cdd4; font-size: 15px; line-height: 1.5; text-align: center; }
+  .pill {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.16);
+    color: #e6e8ec;
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+  .dark-end {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 24px;
+    z-index: 60;
+    text-align: center;
+  }
+  .dark-end h2 { font-size: 22px; font-weight: 800; margin: 0; }
+  .dark-end p { max-width: 720px; font-size: 15px; line-height: 1.6; color: #ddd; }
+  .dark-end a { color: #8ab4f8; }
+</style>
+</head>
+<body>
+  <div id="intro" class="intro-overlay">
+    <div class="pill">Class 5</div>
+    <h1 class="intro-title">The Courier's Message</h1>
+    <p class="intro-sub">
+      Rafaella and Marcus investigate Sofia's murder. Tattoos, ciphers, a hooded sniper, and a courier who is closer than expected.<br><br>
+      Not every path leads to the truth. Some choices close doors forever.
+    </p>
+    <button id="startBtn" class="choice" style="min-width:220px;" onclick="document.getElementById('intro').style.display='none'; go(1);">Start</button>
+  </div>
+
+  <div id="darkEnd" class="dark-end" style="display:none;">
+    <h2>Evidence Secured</h2>
+    <p>
+      The proof connecting Diana, Henrik, and Lena is now in the right hands.
+      Every encrypted transfer, every order, every meeting — documented.
+      <br><br>
+      Sofia's death is not in vain. The courier is no longer a ghost.
+      And the door to justice is finally open.
+    </p>
+    <button class="choice" style="min-width:220px;" onclick="document.getElementById('darkEnd').style.display='none'; go(1);">Start Over</button>
+  </div>
+
+  <div class="stage">
+    <img id="scene" class="scene-bg" src="scenes/rafaella_home_office.png" alt="scene">
+    <img id="char" class="character hidden" src="" alt="character">
+    <div class="vignette"></div>
+    <div class="dialogue">
+      <div id="speaker" class="speaker">—</div>
+      <div id="text" class="text">Initializing...</div>
+    </div>
+  </div>
+
+  <div id="choices" class="choices"></div>
+  <div class="footer">THE COURIER'S MESSAGE — INTERACTIVE INVESTIGATION</div>
+
+<script>
+var STORY = {
+  1: {
+    scene: 'scenes/scene_corridor.png',
+    character: 'characters/mr_agentor.png',
+    side: 'right',
+    speaker: 'Mr Agentor',
+    text: 'In the corridor, Mr Agentor hands her a sealed file. "Diana, Henrik, and Lena are tied together. Sofia found the link. Be careful — Courier is watching." He disappears before she can ask more.',
+    choices: [
+      { label: 'Open the file and start the investigation.', target: 2 },
+      { label: 'Go straight to the cafeteria Sofia used.', target: 3 }
+    ]
+  },
+  2: {
+    scene: 'scenes/rafaella_home_office.png',
+    character: 'characters/rafaella.png',
+    side: 'left',
+    speaker: 'Rafaella',
+    text: 'Back at her desk, she opens the files. Before she can make sense of them, her screen flickers. Someone is inside her system. Marcus recognizes the signature — the same trace Sofia left before she died. A hacker known only as Courier.',
+    choices: [
+      { label: 'Trace the intrusion in real time.', target: 4 },
+      { label: 'Ignore the hack and go to the cafeteria.', target: 3 }
+    ]
+  },
+  3: {
+    scene: 'scenes/cafeteria.png',
+    character: 'characters/rafaella.png',
+    side: 'left',
+    speaker: 'Rafaella',
+    text: 'The cafeteria is quiet. She spots Ceila, the waiter, and notices the small heart tattoo on her neck. She is friendly, almost flattered, when Rafaella asks about it. She gives the name of the tattoo artist without hesitation: Link.',
+    choices: [
+      { label: 'Take the address and leave.', target: 6 },
+      { label: 'Ask when Sofia last came here.', target: 7 }
+    ]
+  },
+  4: {
+    scene: 'scenes/scene_office.png',
+    character: 'characters/marcus.png',
+    side: 'right',
+    speaker: 'Marcus',
+    text: 'The trace leads to dead ends, but one fragment survives: a username, courier_font, and a timestamp matching Sofia\'s last known location. Marcus calls — he remembers the cafeteria. Rafaella can either go deeper or follow the physical trail.',
+    choices: [
+      { label: 'Follow the digital trail deeper.', target: 8 },
+      { label: 'Go to the cafeteria with Marcus.', target: 5 }
+    ]
+  },
+  5: {
+    scene: 'scenes/cafeteria.png',
+    character: 'characters/marcus.png',
+    side: 'right',
+    speaker: 'Marcus',
+    text: 'Marcus remembers Sofia mentioning a waiter with a heart tattoo on her neck. They find Ceila. She is polite but careful. When Rafaella mentions Sofia, Ceila\'s hand drifts to her neck. She gives the name Link and says she will not say more in public.',
+    choices: [
+      { label: 'Take the address and leave.', target: 6 },
+      { label: 'Follow her after her shift.', target: 9 }
+    ]
+  },
+  6: {
+    scene: 'scenes/sofia_body.png',
+    character: '',
+    side: 'left',
+    speaker: '',
+    text: 'The encrypted email arrives. Inside: photos of Sofia\'s necropsy. Rafaella sees a tattoo on Sofia\'s chest — a diamond shape with the Virgo symbol inside. The connection is not random.',
+    choices: [
+      { label: 'Return to the cafeteria and ask about the tattoo.', target: 10 },
+      { label: 'Go to the tattoo artist alone.', target: 11 }
+    ]
+  },
+  7: {
+    scene: 'scenes/cafeteria.png',
+    character: 'characters/ceila.png',
+    side: 'right',
+    speaker: 'Ceila',
+    text: 'Ceila remembers Sofia, but she does not talk about any friend. "Sofia was always busy," she says carefully. "Working a lot on her computer." Her hand stays close to her neck. She will not say more here.',
+    choices: [
+      { label: 'Let her go and visit Link.', target: 11 },
+      { label: 'Follow her after her shift.', target: 9 }
+    ]
+  },
+  8: {
+    scene: 'scenes/rafaella_home_office.png',
+    character: 'characters/rafaella.png',
+    side: 'left',
+    speaker: 'Rafaella',
+    text: 'She digs deeper into the intrusion logs. The hacker accessed her encrypted email archive. Before she can isolate the breach, her screen goes black. When it comes back, every trace is gone. She has lost the digital lead entirely.',
+    choices: [
+      { label: 'Accept the loss and go to the cafeteria.', target: 3 },
+      { label: 'Ask Elias to recover the logs remotely.', target: 12 }
+    ]
+  },
+  9: {
+    scene: 'scenes/scene_corridor.png',
+    character: 'characters/courier.png',
+    side: 'right',
+    speaker: 'Courier',
+    text: 'The corridor is empty. A hooded figure steps from the shadows, carrying what looks like a sniper rifle. Before Rafaella can speak, the figure vanishes into the stairwell. She realizes she was followed. The cafeteria lead is compromised.',
+    choices: [
+      { label: 'Return to the café and warn Ceila.', target: 10 },
+      { label: 'Go home and prepare to visit Link.', target: 11 }
+    ]
+  },
+  10: {
+    scene: 'scenes/cafeteria.png',
+    character: 'characters/azis.png',
+    side: 'right',
+    speaker: 'Azis',
+    text: 'Azis, the chubby waiter, remembers Sofia well. She was always by the window, typing. He knows Ceila — she quit yesterday, scared, and left for Brazil. He knows her tattoo is a heart with a drop, and says she has been through a lot. She smiled again when the red-haired girl came often, but one day she stopped coming, and Ceila changed. She became just professionally nice to customers. When she was alone, she was thoughtful... introspective.',
+    choices: [
+      { label: 'Take the address of Link and leave.', target: 11 },
+      { label: 'Ask more about Ceila and Sofia.', target: 13 }
+    ]
+  },
+  11: {
+    scene: 'scenes/tattoo_workshop.jfif',
+    character: 'characters/link.png',
+    side: 'right',
+    speaker: 'Link',
+    text: 'Link\'s workshop is dim. He is serious, evasive — until she shows a fake detective ID. He relaxes, just enough. The girl with the heart tattoo? Almost a year ago. She was not alone. He mentions Sofia had a tall friend with dreadlocks. Before he can say more, a window shatters. A shot rings out. Link falls.',
+    choices: [
+      { label: 'Chase the figure on the rooftop.', target: 15 },
+      { label: 'Stay and call for help.', target: 14 }
+    ]
+  },
+  12: {
+    scene: 'scenes/elias_lab.png',
+    character: 'characters/elias.png',
+    side: 'right',
+    speaker: 'Elias',
+    text: 'Elias recovers fragments of the intrusion, but the attacker covered every trace. "This is not random," he says. "This is a cleanup. Someone knew you were getting close." He suggests going to the cafeteria as the next physical move.',
+    choices: [
+      { label: 'Go to the cafeteria with Elias\'s warning.', target: 3 }
+    ]
+  },
+  13: {
+    scene: 'scenes/elias_lab.png',
+    character: 'characters/richard_nerdola.png',
+    side: 'right',
+    speaker: 'Richard Nerdola',
+    text: 'Richard Nerdola runs every known cipher and symbol database with Elias. Nothing matches Sofia\'s Virgo diamond or Ceila\'s heart-with-drop. "These aren\'t standard symbols," he says. "We\'re missing a key."',
+    choices: [
+      { label: 'Go to Link\'s workshop immediately.', target: 11 }
+    ]
+  },
+  14: {
+    scene: 'scenes/tattoo_workshop.jfif',
+    character: 'characters/rafaella.png',
+    side: 'left',
+    speaker: 'Rafaella',
+    text: 'Rafaella tries to help Link, but the shooter is already gone — vanished across the rooftops. An ambulance carries him away alive. She calls 911 and leaves before the police arrive. Back home, she knows she needs to know if Link survived and what he meant.',
+    choices: [
+      { label: 'Call Marcus and plan next steps.', target: 16 }
+    ]
+  },
+  15: {
+    scene: 'scenes/sniper_rooftop.png',
+    character: '',
+    side: 'right',
+    speaker: '',
+    text: 'The rooftop is empty. No character appears — only the rifle silhouette, the wind, and the distant city lights. The shot came from here. But the shooter is already gone.',
+    choices: [
+      { label: 'Return to the workshop to check on Link.', target: 14 }
+    ]
+  },
+  16: {
+    scene: 'scenes/rafaella_home_office.png',
+    character: 'characters/marcus.png',
+    side: 'right',
+    speaker: 'Marcus',
+    text: 'At home, Marcus lays out what they know: the tattoos, the code. "We need to talk to Azis before we assume Ceila is just another victim," he says. "And we need to hear what Link says before he\'s discharged."',
+    choices: [
+      { label: 'Go to the hospital undercover.', target: 17 }
+    ]
+  },
+  17: {
+    scene: 'scenes/scene_corridor.png',
+    character: 'characters/mr_agentor.png',
+    side: 'right',
+    speaker: 'Mr Agentor',
+    text: 'In the hospital corridor, Mr Agentor is there as a security contact. He nods at her disguise. "Link is in room 314. Sedated, but he asked for you. The nurses think you are family." He hands her a visitor badge and steps back.',
+    choices: [
+      { label: 'Enter Link\'s room.', target: 18 }
+    ]
+  },
+  18: {
+    scene: 'scenes/scene_corridor.png',
+    character: 'characters/rafaella_office.png',
+    side: 'left',
+    speaker: 'Rafaella Office',
+    text: 'Undercover at the hospital, she reaches Link\'s room. He is sedated, but his eyes open when she enters. "You were looking for the tattoo girl," he whispers. "She was always saying her friend was her wing. The other one answered she was her ding." He closes his eyes again.',
+    choices: [
+      { label: 'Ask the nurse what Link meant by "ding."', target: 19 },
+      { label: 'Leave and call Marcus from the corridor.', target: 20 }
+    ]
+  },
+  19: {
+    scene: 'scenes/cafeteria.png',
+    character: 'characters/azis.png',
+    side: 'right',
+    speaker: 'Azis',
+    text: 'Rafaella rushes back to the cafeteria. Azis is wiping the counter. When she repeats "wing" and "ding," he stops. "Wing... Ding..." He types on his phone. "WingDing! A font!" He looks up, not realizing what that means for the tattoos.',
+    choices: [
+      { label: 'Call Elias to decode the symbols.', target: 20 }
+    ]
+  },
+  20: {
+    scene: 'scenes/elias_lab.png',
+    character: 'characters/elias.png',
+    side: 'right',
+    speaker: 'Elias',
+    text: 'Elias pulls up WingDing character maps. Sofia\'s Virgo symbol maps to C. Ceila\'s heart-with-drop maps to S. "The courier is not a boyfriend," he says. "It\'s a girlfriend. Ceila is the courier." Rafaella understands now. She has to catch Ceila before she leaves the city.',
+    choices: [
+      { label: 'Race to the airport.', target: 21 }
+    ]
+  },
+  21: {
+    scene: 'scenes/ceila_leaving_scene.jfif',
+    character: '',
+    side: 'right',
+    speaker: '',
+    text: 'Ceila is at the gate. She drops an envelope on the floor, looks behind her for a moment, then turns and walks to the plane. The envelope contains both symbols: C and S.',
+    choices: [
+      { label: 'Let her board and read the envelope.', target: 22 },
+      { label: 'Catch her before she boards.', target: 23 }
+    ]
+  },
+  22: {
+    scene: 'scenes/ceila_leaving_scene.jfif',
+    character: '',
+    side: 'right',
+    speaker: '',
+    text: 'Rafaella picks up the envelope. Inside: the two symbols, C and S, and a list of names, transfers, and orders. She delivers everything to the authorities. The case will take years to build, but this file is the cornerstone.',
+    choices: [
+      { label: 'Start over — there may be other paths.', target: 99 }
+    ]
+  },
+  23: {
+    scene: 'scenes/ceila_leaving_scene.jfif',
+    character: 'characters/ceila.png',
+    side: 'right',
+    speaker: 'Ceila',
+    text: 'Rafaella confronts Ceila at the gate. Ceila freezes, then hands over a sealed envelope. "I did not kill anyone," she says. "They made me deliver." Before Rafaella can respond, security approaches. Ceila is taken for questioning. The envelope is confiscated. The evidence is lost forever.',
+    choices: [
+      { label: 'Try again — start over.', target: 1 }
+    ]
+  },
+  99: {
+    scene: 'scenes/rafaella_home_office.png',
+    character: 'characters/marcus.png',
+    side: 'right',
+    speaker: 'Marcus',
+    text: 'The case will take years to build, but this file is the cornerstone. Marcus places a hand on her shoulder. "She would be proud." Outside, the rain keeps falling. But the door is finally open. Sofia\'s death is not in vain.',
+    choices: [
+      { label: 'Start over — there may be other paths.', target: 1 }
+    ]
+  }
+};
+
+var current = 1;
+var sceneEl = document.getElementById("scene");
+var charEl = document.getElementById("char");
+var speakerEl = document.getElementById("speaker");
+var textEl = document.getElementById("text");
+var choicesEl = document.getElementById("choices");
+var introEl = document.getElementById("intro");
+var darkEndEl = document.getElementById("darkEnd");
+
+function setScene(key){
+  var s = STORY[key] || STORY[1];
+  sceneEl.src = s.scene;
+  if (s.character) {
+    charEl.src = s.character;
+    charEl.classList.remove('hidden');
+  } else {
+    charEl.src = '';
+    charEl.classList.add('hidden');
+  }
+  charEl.className = 'character';
+  if (s.side === 'right') {
+    charEl.classList.add('pos-right');
+  } else {
+    charEl.classList.add('pos-left');
+  }
+  if (!s.character) charEl.classList.add('hidden');
+  else charEl.classList.remove('hidden');
+}
+function render(node){
+  speakerEl.textContent = node.speaker || "—";
+  textEl.textContent = node.text;
+  choicesEl.innerHTML = "";
+  var list = node.choices || [];
+  for (var i = 0; i < list.length; i++) {
+    var c = list[i];
+    var b = document.createElement("button");
+    b.className = "choice";
+    b.textContent = c.label;
+    (function(t){ b.onclick = function(){ go(t); }; })(c.target);
+    choicesEl.appendChild(b);
+  }
+}
+function go(key){
+  current = key;
+  if (key === 99) {
+    document.querySelector('.stage').style.display = 'none';
+    choicesEl.style.display = 'none';
+    darkEndEl.style.display = 'flex';
+  } else {
+    document.querySelector('.stage').style.display = '';
+    choicesEl.style.display = '';
+    darkEndEl.style.display = 'none';
+    setScene(key);
+    render(STORY[key]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+document.getElementById("startBtn").onclick = function(){
+  introEl.style.display = "none";
+  go(1);
+};
+</script>
+</body>
+</html>

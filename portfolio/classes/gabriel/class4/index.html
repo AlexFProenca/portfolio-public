@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reading Comprehension — At the Market</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: #0a0f14;
+    color: #e8eaed;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow-y: auto;
+    user-select: none;
+  }
+  body {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px;
+  }
+  .header {
+    width: 100%; max-width: 980px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .title { font-size: 18px; font-weight: 800; letter-spacing: .5px; }
+  .score { font-size: 14px; color: #9aa7b2; letter-spacing: 1px; }
+  .stage {
+    position: relative; width: 100%; max-width: 980px; aspect-ratio: 16 / 9; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.10); background: #000;
+  }
+  .scene-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .scene-gradient { position: absolute; inset: 0; display: grid; place-items: center; background: #0b141c; }
+  .scene-gradient .label { font-size: 28px; font-weight: 800; color: #dce6ee; text-align: center; letter-spacing: 1px; text-transform: uppercase; opacity: .35; }
+  .passage-card { position: absolute; left: 12px; right: 12px; top: 12px; background: rgba(8,12,18,0.78); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 14px; min-height: 90px; }
+  .passage-label { font-size: 11px; color: #9aa7b2; letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 6px; }
+  .passage { font-size: 15px; line-height: 1.35; color: #f4f5f7; }
+  .question-card { position: absolute; left: 12px; right: 12px; bottom: 12px; background: rgba(8,12,18,0.82); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 14px; min-height: 120px; }
+  .choices { width: 100%; max-width: 980px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .choice { height: 60px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.14); background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); color: #f1f3f5; font-size: 14px; font-weight: 700; cursor: pointer; text-align: center; transition: transform .12s ease, background .2s ease, box-shadow .2s ease; }
+  .choice:hover { transform: translateY(-3px); background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)); box-shadow: 0 10px 24px rgba(0,0,0,0.4); }
+  .choice:active { transform: translateY(1px) scale(0.98); }
+  .choice.disabled { opacity: .55; pointer-events: none; }
+  .choice.correct { border-color: #00e6b8; color: #b9f6ea; box-shadow: 0 0 20px rgba(0,230,184,0.25); }
+  .choice.wrong { border-color: #ff6b6b; color: #fcc; box-shadow: 0 0 20px rgba(255,107,107,0.25); }
+  .progress { width: 100%; max-width: 980px; display: flex; gap: 6px; }
+  .pip { height: 8px; flex: 1; border-radius: 4px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.14); }
+  .pip.done { background: linear-gradient(90deg, #00e6b8, #00ffc8); border-color: transparent; box-shadow: 0 0 10px rgba(0,255,200,0.35); }
+  .pip.hit { background: #00e6b8; }
+  .footer { font-size: 11px; color: #5b6572; letter-spacing: 1px; }
+  .result {
+    position: absolute; inset: 0; background: rgba(4,8,14,0.85); backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 14px; padding: 24px; text-align: center;
+  }
+  .result h2 { margin: 0; font-size: 28px; }
+  .result p { margin: 0; color: #c8cdd4; }
+  .result button { height: 52px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.14); background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04)); color: #f4f5f7; font-weight: 800; letter-spacing: .5px; padding: 0 18px; cursor: pointer; }
+  .hint { width: 100%; max-width: 980px; font-size: 11px; color: #5b6572; text-align: center; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">Reading Comprehension</div>
+    <div class="score"><span id="pts">0</span>/<span id="max">15</span></div>
+  </div>
+  <div class="stage">
+    <div class="scene-gradient"><div class="label" id="sceneLabel">Market</div></div>
+    <img id="scene" class="scene-bg" style="display:none;" alt="scene">
+    <div class="vignette"></div>
+    <div class="passage-card"><div class="passage-label">Passage</div><div class="passage" id="passage">Loading...</div></div>
+    <div class="question-card"><div class="counter" id="counter">Q 1 / 15</div><div class="qtext" id="qtext">Loading...</div></div>
+    <div class="result" id="result"><h2 id="rtitle">Result</h2><p id="rtext">Score text</p><button id="replay">Play Again</button></div>
+  </div>
+  <div class="progress" id="progress"></div>
+  <div class="choices" id="choices"></div>
+  <div class="hint">Optional backgrounds in scenes/scene_01.png ... scenes/scene_15.png</div>
+  <div class="footer">GABRIEL — Everyday English · Reading Comprehension</div>
+
+<script>
+(function() {
+  'use strict';
+  var $ = function(id) { return document.getElementById(id); };
+  var ITEMS = [
+    {passage:"Ana buys oranges, apples, and bananas at the fruit stand. The vendor gives her a red bag.", question:"Where does Ana buy fruit?", options:["Pharmacy","Fruit stand","Bakery","Library"], answer:1, scene:'scenes/scene_01.webp'},
+    {passage:"Mr. Lima cuts beef and chicken for a customer. He wraps the meat in white paper.", question:"What does Mr. Lima sell?", options:["Bread","Medicine","Meat","Clothes"], answer:2, scene:'scenes/scene_02.webp'},
+    {passage:"Priya picks yellow roses at the flower shop. She pays by card and leaves with a small paper bag.", question:"What does Priya buy?", options:["Flowers","Medicine","Ice cream","Books"], answer:0, scene:'scenes/scene_03.webp'},
+    {passage:"Leo places a loaf of crusty bread on the counter. The customer smiles and hands him coins.", question:"What does the customer buy?", options:["A haircut","A bus ticket","Bread","A ticket"], answer:2, scene:'scenes/scene_04.webp'},
+    {passage:"Tomás enters a small green grocery. He buys tomatoes, lettuce, and cheese. He uses a cloth bag.", question:"Where does Tomás shop?", options:["Cinema","Grocery store","Gym","Classroom"], answer:1, scene:'scenes/scene_05.webp'},
+    {passage:"Aisha stands behind the pharmacy counter. She hands medicine to an elderly lady and explains how to take it.", question:"Where does Aisha work?", options:["Pharmacy","School","Clothes shop","Cafe"], answer:0, scene:'scenes/scene_06.webp'},
+    {passage:"Noah pushes a small cart with milk, bread, and juice. His sister runs ahead to the cereal aisle.", question:"What does Noah carry?", options:["A backpack","A suitcase","A shopping cart","A soccer ball"], answer:2, scene:'scenes/scene_07.webp'},
+    {passage:"Eva looks at a denim jacket inside a clothing store. The tag says forty-nine ninety-nine.", question:"Where does Eva shop?", options:["Pharmacy","Bookstore","Clothing store","Restaurant"], answer:2, scene:'scenes/scene_08.webp'},
+    {passage:"Carlos sells chocolate and vanilla ice cream from a blue cart. Children laugh and ask for cones.", question:"What does Carlos sell?", options:["Books","Ice cream","Phones","Shoes"], answer:1, scene:'scenes/scene_09.webp'},
+    {passage:"Mia buys a notebook and a blue pen. She puts them in a clear plastic bag and says, “I need this for school.”", question:"What is inside the bag?", options:["A notebook and a pen","Apples and bread","A T-shirt","A ticket"], answer:0, scene:'scenes/scene_10.webp'},
+    {passage:"Sofia asks for cheese. The vendor says, “Five reais.” She gives him ten and waits for change.", question:"What is the price of the cheese?", options:["Two reais","Five reais","Ten reais","Fifteen reais"], answer:1, scene:'scenes/scene_11.webp'},
+    {passage:"Mr. Lima drops a red apple on the floor. A dog picks it up and runs away. Everyone laughs.", question:"Who takes the apple?", options:["A girl","A cat","A dog","A horse"], answer:2, scene:'scenes/scene_12.webp'},
+    {passage:"Priya looks at her watch in the cafe. It is 10:15. She drinks coffee and writes ideas in her notebook.", question:"What time is it?", options:["10:15","8:45","12:30","9:00"], answer:0, scene:'scenes/scene_13.webp'},
+    {passage:"Tomás buys one coffee and two croissants. The total is nineteen reais. He pays with cash.", question:"How much does Tomás pay?", options:["Five reais","Nineteen reais","Twenty reais","Thirty reais"], answer:1, scene:'scenes/scene_14.webp'},
+    {passage:"Eva finishes shopping and walks home with two bags. Her cat waits on the sofa.", question:"Where does Eva go after the market?", options:["To school","To home","To the cinema","To the bus station"], answer:1, scene:'scenes/scene_15.webp'}
+  ];
+
+  var SCENE_LABELS = [
+    'Fruit stand','Butcher','Flower shop','Bakery','Grocery store',
+    'Pharmacy','Supermarket','Clothing store','Ice cream cart','Stationery shop',
+    'Market counter','Market floor','Cafe','Cafe counter','Home'
+  ];
+
+  var state = { idx: 0, score: 0, answered: false };
+
+  function setScene(url, idx) {
+    var grad = $('sceneGradient'); var label = $('sceneLabel'); var img = $('scene');
+    if (label) label.textContent = SCENE_LABELS[idx] || 'Market';
+    if (grad) grad.style.display = 'grid';
+    if (img) img.style.display = 'none';
+    if (!url) return;
+    var test = new window.Image();
+    test.onload = function() { if (grad) grad.style.display = 'none'; if (img) { img.style.display = 'block'; img.src = url; } };
+    test.onerror = function() { if (grad) grad.style.display = 'grid'; if (img) img.style.display = 'none'; };
+    test.src = url;
+  }
+
+  function render() {
+    try {
+      var item = ITEMS[state.idx];
+      $('max').textContent = String(ITEMS.length);
+      $('pts').textContent = String(state.score);
+      $('counter').textContent = 'Q ' + (state.idx + 1) + ' / ' + ITEMS.length;
+      $('qtext').textContent = item.question;
+      $('passage').textContent = item.passage;
+      setScene(item.scene, state.idx);
+      $('choices').innerHTML = item.options.map(function(o, i) {
+        return '<div class="choice" data-i="' + i + '">' + String.fromCharCode(65 + i) + '. ' + o + '</div>';
+      }).join('');
+      state.answered = false;
+    } catch (e) { console.error(e); var q = $('qtext'); if (q) q.textContent = 'Error loading question.'; }
+  }
+
+  function ensurePips() {
+    var p = $('progress'); if (!p || p.children.length) return;
+    ITEMS.forEach(function(_, i) { var d = document.createElement('div'); d.className = 'pip'; d.id = 'pip-' + i; p.appendChild(d); });
+  }
+
+  function pick(i) {
+    if (state.answered) return;
+    state.answered = true;
+    var item = ITEMS[state.idx]; var correct = i === item.answer;
+    var choices = document.querySelectorAll('.choice');
+    choices.forEach(function(el, j) { el.classList.add('disabled'); if (j === item.answer) el.classList.add('correct'); else if (j === i && !correct) el.classList.add('wrong'); });
+    var pip = $('pip-' + state.idx); if (pip) pip.className = 'pip done' + (correct ? ' hit' : '');
+    if (correct) { state.score += 1; $('pts').textContent = String(state.score); }
+    setTimeout(function() { state.idx += 1; if (state.idx >= ITEMS.length) showResult(); else render(); }, correct ? 900 : 1500);
+  }
+
+  function showResult() {
+    var pct = Math.round((state.score / ITEMS.length) * 100);
+    $('result').style.display = 'flex';
+    $('rtitle').textContent = 'Quiz Complete';
+    $('rtext').textContent = state.score + ' / ' + ITEMS.length + ' (' + pct + '%)';
+  }
+
+  $('choices').addEventListener('click', function(e) { var el = e.target.closest('.choice'); if (!el) return; pick(Number(el.dataset.i)); });
+  $('replay').addEventListener('click', function() { state.idx = 0; state.score = 0; state.answered = false; $('result').style.display = 'none'; render(); });
+
+  function boot() { ensurePips(); render(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+</script>
+</body>
+</html>

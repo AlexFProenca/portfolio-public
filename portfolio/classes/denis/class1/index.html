@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>The Trip — Interactive Quiz</title>
+<style>
+/* Reset & Base */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: #0b0c0f;
+  color: #e8eaef;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* Intro */
+#intro {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(1200px 800px at 50% 30%, rgba(38,42,54,0.55), transparent),
+              linear-gradient(160deg, #0e1019 0%, #0a0b0d 100%);
+  z-index: 50;
+  padding: 24px;
+}
+#intro .panel {
+  width: min(720px, 100%);
+  padding: 36px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(13, 15, 21, 0.9);
+  border-radius: 22px;
+}
+#intro h1 {
+  font-size: 38px;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  background: linear-gradient(90deg, #70ffd9, #84f4e6, #59dfc3);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+#intro p {
+  color: #c8d0dc;
+  margin-top: 18px;
+}
+#startBtn, #againBtn {
+  margin-top: 26px;
+  padding: 16px 26px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: #16212e;
+  color: #e8f9f2;
+  font-size: 15px;
+  letter-spacing: 0.4px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+#startBtn:hover, #againBtn:hover { background: #1f2e40; }
+
+/* App */
+#app { height: 100%; display: none; flex-direction: column; }
+
+header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(10,12,16,0.7);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+header h1 { font-size: 16px; letter-spacing: 0.6px; color: #d2dae4; }
+.pill {
+  font-size: 11px;
+  color: #9bbfb6;
+  border: 1px solid rgba(125,211,190,0.25);
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(125,211,190,0.04);
+  white-space: nowrap;
+}
+
+/* Stage */
+#stage {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+#scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+#vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(1200px 600px at 50% 40%, rgba(11,12,15,0.12) 0%, rgba(11,12,15,0.35) 100%);
+  pointer-events: none;
+}
+
+/* HUD */
+#hud {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  gap: 10px;
+}
+.hud {
+  font-size: 12px;
+  color: #9fbabd;
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(6, 8, 12, 0.65);
+  backdrop-filter: blur(10px);
+}
+
+/* Dialogue */
+#dialogue {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 22px 22px 26px;
+  background: linear-gradient(180deg, rgba(10,12,18,0) 0%, rgba(10,12,18,0.92) 34%, rgba(9,10,14,0.98) 100%);
+}
+#speaker {
+  font-size: 13px;
+  color: #7fe1cb;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+#text {
+  font-size: 17px;
+  color: #dbe2ec;
+  min-height: 40px;
+}
+#choices {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.choice {
+  padding: 12px 14px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(12, 15, 22, 0.85);
+  color: #e6dfc6;
+  font-size: 15px;
+  text-align: left;
+  border-radius: 14px;
+  cursor: pointer;
+  max-width: 420px;
+  width: fit-content;
+}
+.choice:hover { background: #131824; border-color: rgba(255,255,255,0.28); }
+.choice.ok { border-color: rgba(108, 213, 178, 0.65); color: #bff3db; }
+.choice.bad { border-color: rgba(245, 156, 148, 0.55); color: #ffd0cc; }
+.choice:disabled { opacity: 0.65; cursor: not-allowed; }
+
+/* End */
+#end {
+  position: fixed;
+  inset: 0;
+  display: none;
+  grid;
+  place-items: center;
+  background: rgba(6, 7, 9, 0.92);
+  z-index: 60;
+  padding: 24px;
+}
+#end.show { display: grid; }
+#end .panel {
+  width: min(720px, 100%);
+  padding: 36px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(16, 18, 24, 0.95);
+  border-radius: 22px;
+}
+#end h1 { font-size: 36px; background: linear-gradient(90deg, #70ffd9, #84f4e6); -webkit-background-clip: text; color: transparent; }
+#end p { color: #cbd3df; margin-top: 12px; }
+#end .score { font-size: 22px; color: #ffd76f; margin-top: 10px; }
+#end button { margin-top: 24px; }
+
+/* Hidden */
+.hidden { display: none !important; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  #intro h1 { font-size: 30px; }
+  #text { font-size: 16px; }
+  .choice { font-size: 14px; border-radius: 12px; padding: 11px 12px; }
+}
+</style>
+</head>
+<body>
+
+<div id="intro">
+  <div class="panel">
+    <h1>The Trip</h1>
+    <p>You’re traveling abroad and real situations happen fast. Choose the right English response in each moment. Same location means one stable scene; only story and score change.</p>
+    <button id="startBtn">Start</button>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <h1>TRAVEL ENGLISH QUIZ</h1>
+    <div class="pill" id="locationLabel">Location</div>
+  </header>
+
+  <section id="stage">
+    <img id="scene" alt="scene" />
+    <div id="vignette"></div>
+    <div id="hud">
+      <div class="hud" id="score">Score: 0</div>
+      <div class="hud" id="best">Best: 0</div>
+    </div>
+    <div id="dialogue">
+      <p id="speaker"></p>
+      <p id="text"></p>
+      <div id="choices"></div>
+    </div>
+  </section>
+</div>
+
+<div id="end">
+  <div class="panel">
+    <h1 id="endTitle">Completed</h1>
+    <p id="endText"></p>
+    <p class="score" id="endScore"></p>
+    <button id="againBtn">Try Again</button>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const LOCATIONS = {
+  airport: 'Aeroporto',
+  customs: 'Alfândega',
+  hotel: 'Hotel',
+  taxi: 'Táxi',
+  tourist: 'Ponto Turístico',
+  loss: 'Perdido',
+  metro: 'Metrô',
+  final1: 'Resultado',
+  final2: 'Resultado'
+};
+
+const SCENES = {
+  airport: ['scenes/scene_airport.jpg','scenes/scene_airport_b.jpg'],
+  customs: ['scenes/scene_customs.jpg','scenes/scene_customs_b.jpg'],
+  hotel: ['scenes/scene_hotel.jpg','scenes/scene_hotel_b.jpg'],
+  taxi: ['scenes/scene_taxi.jpg','scenes/scene_taxi_b.jpg'],
+  tourist: ['scenes/scene_tourist.jpg','scenes/scene_tourist_b.jpg'],
+  loss: ['scenes/scene_loss.jpg','scenes/scene_loss_b.jpg'],
+  metro: ['scenes/scene_metro.jpg','scenes/scene_metro_b.jpg'],
+  final1: 'scenes/scene_done.jpg',
+  final2: 'scenes/scene_done.jpg'
+};
+
+const QUESTIONS = [
+  {
+    id: 'q1',
+    location: 'airport',
+    speaker: 'Check-in agent',
+    text: 'You arrive early and the agent needs your reservation. Choose the most natural sentence.',
+    choices: [
+      { label: 'Can I see my ticket first?', correct: false },
+      { label: 'I have a reservation under my name, please.', correct: true },
+      { label: 'Give me my boarding pass.', correct: false }
+    ]
+  },
+  {
+    id: 'q2',
+    location: 'airport',
+    speaker: 'Agent',
+    text: 'Your bag is a bit heavy. He asks if it is carry-on only. Choose the best response.',
+    choices: [
+      { label: 'Yes, it is. I can check it if needed.', correct: true },
+      { label: 'What is the weight limit?', correct: false },
+      { label: 'I will leave it here.', correct: false }
+    ]
+  },
+  {
+    id: 'q3',
+    location: 'customs',
+    speaker: 'Customs officer',
+    text: 'The officer asks what you are bringing into the country. Choose the polite answer.',
+    choices: [
+      { label: 'Nothing to declare.', correct: false },
+      { label: 'I have gifts, medicines, and electronics for personal use.', correct: true },
+      { label: 'Why do you need to know?', correct: false }
+    ]
+  },
+  {
+    id: 'q4',
+    location: 'customs',
+    speaker: 'Officer',
+    text: 'She asks if you have food. Choose the honest clear answer.',
+    choices: [
+      { label: 'Maybe.', correct: false },
+      { label: 'Just snacks in my backpack.', correct: true },
+      { label: 'Can I keep them?', correct: false }
+    ]
+  },
+  {
+    id: 'q5',
+    location: 'hotel',
+    speaker: 'Receptionist',
+    text: 'You arrive after a long flight and ask for your room.',
+    choices: [
+      { label: 'Wake me at 6 a.m.', correct: false },
+      { label: 'I have a booking; can I check in early?', correct: true },
+      { label: 'Call me later.', correct: false }
+    ]
+  },
+  {
+    id: 'q6',
+    location: 'hotel',
+    speaker: 'Receptionist',
+    text: 'She offers breakfast. Choose a natural response.',
+    choices: [
+      { label: 'Is breakfast included?', correct: true },
+      { label: 'No sleep.', correct: false },
+      { label: 'I want more pillows.', correct: false }
+    ]
+  },
+  {
+    id: 'q7',
+    location: 'taxi',
+    speaker: 'Driver',
+    text: 'The driver asks where you want to go. Answer politely and clearly.',
+    choices: [
+      { label: 'Can we stop for coffee?', correct: false },
+      { label: 'Could you take me to this address, please?', correct: true },
+      { label: 'Follow that car.', correct: false }
+    ]
+  },
+  {
+    id: 'q8',
+    location: 'taxi',
+    speaker: 'Driver',
+    text: 'He asks if you know the city well. Answer honestly.',
+    choices: [
+      { label: 'No, it is my first time here.', correct: true },
+      { label: 'Silence.', correct: false },
+      { label: 'Drive faster.', correct: false }
+    ]
+  },
+  {
+    id: 'q9',
+    location: 'tourist',
+    speaker: 'Local person',
+    text: 'A local recommends a cheap restaurant nearby. Choose a polite response.',
+    choices: [
+      { label: 'Thanks! How far is it from here?', correct: true },
+      { label: 'Is it expensive?', correct: false },
+      { label: 'I do not like food.', correct: false }
+    ]
+  },
+  {
+    id: 'q10',
+    location: 'tourist',
+    speaker: 'Guide',
+    text: 'The group is asked to meet at the fountain in 15 minutes. Choose a good reply.',
+    choices: [
+      { label: 'Great, I will be there.', correct: true },
+      { label: 'I will sleep more.', correct: false },
+      { label: 'Call me.', correct: false }
+    ]
+  },
+  {
+    id: 'q11',
+    location: 'loss',
+    speaker: 'Receptionist',
+    text: 'You realize your wallet is missing in a shopping area. Ask for help politely.',
+    choices: [
+      { label: 'He stole it!', correct: false },
+      { label: 'Where is the nearest police station, please?', correct: true },
+      { label: 'Where is the hotel?', correct: false }
+    ]
+  },
+  {
+    id: 'q12',
+    location: 'loss',
+    speaker: 'Police officer',
+    text: 'You explain what you lost. Choose the most useful clear description.',
+    choices: [
+      { label: 'A blue wallet with IDs and cards.', correct: true },
+      { label: 'I lost luck.', correct: false },
+      { label: 'Nothing.', correct: false }
+    ]
+  },
+  {
+    id: 'q13',
+    location: 'metro',
+    speaker: 'Stranger',
+    text: 'You cannot find the right train. Ask nicely.',
+    choices: [
+      { label: 'Which line goes to the museum?', correct: true },
+      { label: 'Who are you?', correct: false },
+      { label: 'Give me a ticket.', correct: false }
+    ]
+  },
+  {
+    id: 'q14',
+    location: 'metro',
+    speaker: 'Announcer',
+    text: 'The announcer says the next stop is closed. Choose the natural reaction.',
+    choices: [
+      { label: 'Why?', correct: false },
+      { label: 'Okay, I will get off at the next open station.', correct: true },
+      { label: 'Open the doors.', correct: false }
+    ]
+  }
+];
+
+const RESULTS = {
+  hardpass: {
+    title: 'Great Trip!',
+    text: 'You traveled like a local. Your English was natural and useful in every situation.'
+  },
+  pass: {
+    title: 'Good Journey',
+    text: 'Solid performance. A few more practice phrases and your travel English will feel automatic.'
+  },
+  fail: {
+    title: 'Missed Connection',
+    text: 'You survived the trip, but the English got confusing. Review these situations again.'
+  }
+};
+
+let score = 0;
+let best = 0;
+let answered = 0;
+
+function updateHUD() {
+  $('score').textContent = 'Score: ' + score;
+  if (score > best) best = score;
+  $('best').textContent = 'Best: ' + best;
+}
+
+function renderScene(q) {
+  const loc = LOCATIONS[q.location] || 'Trip';
+  $('locationLabel').textContent = loc;
+  if (q.location === 'final1' || q.location === 'final2') {
+    $('locationLabel').textContent = RESULTS[q.location].title;
+  }
+  $('scene').src = (() => { const s = SCENES[q.location]; return Array.isArray(s) ? s[Math.floor(Math.random()*s.length)] : (s || ''); })();
+  $('speaker').textContent = '— ' + (q.speaker || '');
+  $('text').textContent = q.text || '';
+  $('choices').innerHTML = '';
+
+  if (q.choices) {
+    q.choices.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.textContent = choice.label;
+      btn.addEventListener('click', () => answer(btn, choice.correct));
+      $('choices').appendChild(btn);
+    });
+  } else if (q.end) {
+    showEnd(q.end);
+  }
+}
+
+function answer(btn, correct) {
+  const btns = Array.from($('choices').children);
+  btns.forEach(b => b.disabled = true);
+  if (correct) {
+    btn.classList.add('ok');
+    score += 10;
+  } else {
+    btn.classList.add('bad');
+    const right = btns.find(b => b.textContent === QUESTIONS.find(q => q.id === (currentId()))
+        ?.choices.find(c => c.correct)?.label);
+    if (right) right.classList.add('ok');
+  }
+  updateHUD();
+  answered++;
+  if (answered >= QUESTIONS.length) {
+    setTimeout(() => {
+      const end = score >= 110 ? RESULTS.hardpass
+        : score >= 70 ? RESULTS.pass
+        : RESULTS.fail;
+      showEnd(end, score);
+    }, 700);
+  } else {
+    setTimeout(() => renderScene(QUESTIONS[answered]), 750);
+  }
+}
+
+function currentId() { return QUESTIONS[answered]?.id; }
+
+function showEnd(result, finalScore) {
+  const app = $('app');
+  const end = $('end');
+  app.classList.add('hidden');
+  end.classList.add('show');
+  end.querySelector('#endTitle').textContent = result.title;
+  end.querySelector('#endText').textContent = result.text;
+  $('endScore').textContent = 'Score: ' + finalScore + ' / 140';
+}
+
+$('startBtn').addEventListener('click', () => {
+  $('intro').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  $('app').style.display = 'flex';
+  score = 0;
+  answered = 0;
+  updateHUD();
+  renderScene(QUESTIONS[0]);
+});
+
+$('againBtn').addEventListener('click', () => {
+  $('end').classList.remove('show');
+  $('intro').classList.remove('hidden');
+  score = 0;
+  answered = 0;
+  updateHUD();
+});
+</script>
+</body>
+</html>

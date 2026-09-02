@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Lesson — The Untold Nordic Being Encounter</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    background: #0f1417;
+    color: #e6e1d8;
+    line-height: 1.75;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+  h1 {
+    font-size: 1.9rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 3px solid #5aa4b5;
+    padding-bottom: 0.4rem;
+    color: #f3efe6;
+  }
+  .subtitle {
+    font-size: 1rem;
+    color: #b8c2c5;
+    margin-bottom: 2rem;
+    font-style: italic;
+  }
+  .scene {
+    display: none;
+    animation: fade 0.4s ease;
+  }
+  .scene.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
+  .scene-img {
+    width: 100%;
+    max-height: 380px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.45);
+    margin-bottom: 1.2rem;
+  }
+  .scene-text {
+    font-size: 1.1rem;
+    margin-bottom: 1.4rem;
+    text-align: justify;
+    background: #151c1f;
+    padding: 1rem 1.2rem;
+    border-radius: 8px;
+    border: 1px solid #263035;
+  }
+  .question {
+    background: #172025;
+    border-left: 5px solid #5aa4b5;
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    margin: 1.2rem 0;
+    border-top: 1px solid #263035;
+    border-right: 1px solid #263035;
+    border-bottom: 1px solid #263035;
+  }
+  .question strong { color: #9bd3df; }
+  .choices { margin-top: 0.8rem; }
+  .choices button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.7rem 1rem;
+    margin: 0.4rem 0;
+    border: 2px solid #2c373c;
+    background: #11171a;
+    color: #e6e1d8;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    transition: all 0.2s;
+  }
+  .choices button:hover { border-color: #5aa4b5; background: #182328; }
+  .choices button.correct { border-color: #5aa4b5; background: #1c2e35; font-weight: bold; color: #cdeaf2; }
+  .choices button.wrong { border-color: #94423a; background: #261a19; color: #f3d6d4; }
+  .feedback {
+    margin-top: 0.6rem;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: #cfc9bc;
+    display: none;
+  }
+  .nav {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .nav button {
+    padding: 0.7rem 1.4rem;
+    border: none;
+    background: #5aa4b5;
+    color: #0b1012;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-family: inherit;
+    font-weight: bold;
+  }
+  .nav button:disabled { background: #3a484f; cursor: not-allowed; color: #7a8a90; }
+  .progress {
+    text-align: center;
+    color: #8a9498;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+  .highlight {
+    background: #3a3022;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    color: #f3e6c8;
+  }
+</style>
+</head>
+<body>
+
+<h1>The Untold Nordic Being Encounter That Broke His Reality</h1>
+<p class="subtitle">Luigi Venditelli — DEBRIEFED ep. 91</p>
+
+<div class="progress" id="progress">Scene 1 of 8</div>
+
+<!-- SCENE 1 -->
+<div class="scene active" data-index="1">
+  <img class="scene-img" src="https://images.pexels.com/photos/17411574/pexels-photo-17411574.jpeg" alt="Starry night sky">
+  <div class="scene-text">
+    It started with a statement that made Luigi freeze in the passenger seat. The woman beside him said, bluntly:
+    <span class="highlight">"I am likely the reincarnation of the daughter of Mary Magdalene and Jesus."</span>
+    He did not believe her. Not for a second. He thought it was a scam, a delusion, a coincidence. But what came next — objects appearing, numbers showing up on his phone, strangers knowing things he had never told anyone — began to crack the certainty he had built over years of investigation.
+  </div>
+  <div class="question">
+    <strong>Question:</strong> Why does Luigi resist accepting the woman's first claim so strongly?
+    <div class="choices">
+      <button onclick="answer(this, false)">A) Because he did not believe in reincarnation</button>
+      <button onclick="answer(this, true)">B) Because he had already seen strange craft before, so he assumed coincidence or a setup</button>
+      <button onclick="answer(this, false)">C) Because the woman was talking about a space trip</button>
+    </div>
+    <div class="feedback">Correct. He explicitly says he had encountered craft before, so he initially treated the claim as delusion or deception.</div>
+  </div>
+</div>
+
+<!-- SCENE 2 -->
+<div class="scene" data-index="2">
+  <img class="scene-img" src="https://images.pexels.com/photos/67088/pexels-photo-67088.jpeg" alt="Car interior at night">
+  <div class="scene-text">
+    In the car, the woman said she had been taken aboard a ship. Inside, a figure that looked human but <em>not entirely human</em> — thinning hair, off manner — was holding a baby. A gray figure stood nearby. She took the child in her arms. The girl had blue eyes and curly hair. A voice insisted: <span class="highlight">"You have to give her a name."</span> She resisted. In the end, she said: <span class="highlight">"I'll call her Lily."</span>
+  </div>
+  <div class="question">
+    <strong>Question:</strong> What does this scene establish as the central link between Luigi and the case?
+    <div class="choices">
+      <button onclick="answer(this, true)">A) The name Lily, known only to her and Luigi</button>
+      <button onclick="answer(this, false)">B) The existence of alien abductions</button>
+      <button onclick="answer(this, false)">C) The woman's identity as a descendant of Jesus</button>
+    </div>
+    <div class="feedback">Exactly. The name Lily becomes the thread that connects separate accounts.</div>
+  </div>
+</div>
+
+<!-- SCENE 3 -->
+<div class="scene" data-index="3">
+  <img class="scene-img" src="https://images.pexels.com/photos/6555015/pexels-photo-6555015.jpeg" alt="Dinner party indoors">
+  <div class="scene-text">
+    Luigi hosted a dinner at his house. He invited people who had seen the craft the night before. Among them was Lisa — French-Canadian, barely speaking English — and the woman from the ship, who spoke only English. While he cooked in the kitchen, he heard something impossible: Lisa spoke French and the other answered in English, <span class="highlight">as if they were speaking the same language</span>. When he asked, the answer came dry: <span class="highlight">"Don't worry about it. Just keep cooking."</span>
+  </div>
+  <div class="question">
+    <strong>Question:</strong> What makes this scene especially disturbing for Luigi?
+    <div class="choices">
+      <button onclick="answer(this, false)">A) Lisa and the woman had been friends for years</button>
+      <button onclick="answer(this, true)">B) He knew Lisa did not understand English, yet they seemed to communicate fluently</button>
+      <button onclick="answer(this, false)">C) The woman had just arrived from Canada</button>
+    </div>
+    <div class="feedback">Right. The impossible communication between two people who did not share a language.</div>
+  </div>
+</div>
+
+<!-- SCENE 4 -->
+<div class="scene" data-index="4">
+  <img class="scene-img" src="https://images.pexels.com/photos/10480618/pexels-photo-10480618.jpeg" alt="Police officer at night">
+  <div class="scene-text">
+    In the weeks before the dinner, a police friend kept calling. He wanted Luigi to meet a woman on the <span class="highlight">South Shore of Montreal</span>. There was a little girl there, he said. <span class="highlight">"She is not from here."</span> Luigi was busy and ignored it. Then, after midnight that same night, the phone rang again. It was the officer, asking a favor: <span class="highlight">"Ask Sarah if the name Lily means anything to her."</span> No one else knew the name Lily yet.
+  </div>
+  <div class="question">
+    <strong>Question:</strong> What key detail is the officer trying to confirm?
+    <div class="choices">
+      <button onclick="answer(this, false)">A) Whether Sarah saw a spaceship</button>
+      <button onclick="answer(this, true)">B) Whether the name Lily means anything to Sarah</button>
+      <button onclick="answer(this, false)">C) Whether Lisa knows the girl's mother</button>
+    </div>
+    <div class="feedback">The officer already knew the name Lily and wanted confirmation — without revealing how he learned it.</div>
+  </div>
+</div>
+
+<!-- SCENE 5 -->
+<div class="scene" data-index="5">
+  <img class="scene-img" src="https://images.pexels.com/photo/glowing-with-blue-light-flying-saucer-7462340/pexels-photo-7462340.jpeg" alt="Glowing object in dark sky">
+  <div class="scene-text">
+    The connection exploded when Luigi showed the officer Sarah's drawing of Lily — and the officer sent back a photo of the little girl. <span class="highlight">They were identical</span>. Sarah screamed. The officer pulled the car over. Luigi got chills. There was no way this could be human coordination. There was no motive, no script, no logic for a coincidence this precise.
+  </div>
+  <div class="question">
+    <strong>Question:</strong> What makes the drawing-to-photo match feel impossible to Luigi?
+    <div class="choices">
+      <button onclick="answer(this, true)">A) Only Sarah knew the name Lily, and her drawing matched the photo exactly</button>
+      <button onclick="answer(this, false)">B) The officer sent the photo before the drawing existed</button>
+      <button onclick="answer(this, false)">C) Sarah had already seen the photo before drawing the girl</button>
+    </div>
+    <div class="feedback">Correct. The drawing was original to Sarah, made without knowledge of the photo — yet they matched perfectly.</div>
+  </div>
+</div>
+
+<!-- SCENE 6 -->
+<div class="scene" data-index="6">
+  <img class="scene-img" src="https://images.pexels.com/photo/woman-holding-her-child-20152644/pexels-photo-20152644.jpeg" alt="Woman holding a child">
+  <div class="scene-text">
+    Days later, Luigi was asked to meet Emily — a young woman who had been visited multiple times. She said she came to Montreal because <span class="highlight">"there is a little girl here named Lily and her mother, Sarah, is the daughter of Mary Magdalene."</span> Before any explanation, Emily looked at Luigi and said: <span class="highlight">"The number 444 is very important. I saw it every day this week."</span> Luigi had just discovered that Sarah had also been seeing 444 that same week.
+  </div>
+  <div class="question">
+    <strong>Question:</strong> What is the first thing Emily says that paralyzes Luigi?
+    <div class="choices">
+      <button onclick="answer(this, false)">A) That she had been abducted by aliens</button>
+      <button onclick="answer(this, true)">B) That the number 444 was important — a private detail he had not told anyone</button>
+      <button onclick="answer(this, false)">C) That Sarah was the daughter of Mary Magdalene</button>
+    </div>
+    <div class="feedback">Exactly. The number 444 was a private detail only he knew; Emily had no way to discover it.</div>
+  </div>
+</div>
+
+<!-- SCENE 7 -->
+<div class="scene" data-index="7">
+  <img class="scene-img" src="https://images.pexels.com/photo/woman-holding-her-child-20152644/pexels-photo-20152644.jpeg" alt="Intimate, tense moment">
+  <div class="scene-text">
+    Through intermediaries, Luigi finally reached Lily's mother. She spoke French. She said she was taken aboard a ship. She was in a round room with other women who seemed <span class="highlight">switched off, like robots</span>. Then Jesus entered. He told her: <span class="highlight">"You are about to become a mother, and I will introduce you to your child."</span> He left. The little girl ran into the room shouting: <span class="highlight">"Mama, mama, my name is Lily."</span>
+  </div>
+  <div class="question">
+    <strong>Question:</strong> Which detail from the mother's account connects the ship experience to the daughter she later had on Earth?
+    <div class="choices">
+      <button onclick="answer(this, false)">A) She recognized Jesus by a tattoo</button>
+      <button onclick="answer(this, true)">B) The girl on the ship said her name was Lily, and the daughter she later had is also named Lily</button>
+      <button onclick="answer(this, false)">C) The room was the same color as her house</button>
+    </div>
+    <div class="feedback">Correct. The identity between the ship girl and the Earth daughter is the point where reality breaks open.</div>
+  </div>
+</div>
+
+<!-- SCENE 8 -->
+<div class="scene" data-index="8">
+  <img class="scene-img" src="https://images.pexels.com/photo/lights-on-night-sky-17411574/pexels-photo-17411574.jpeg" alt="Mysterious lights in night sky">
+  <div class="scene-text">
+    Luigi asked the question that still echoes: if this is all absolute nonsense, <span class="highlight">why do the pieces keep fitting together?</span> The name Lily. The number 444. The matching drawing. The communication across incompatible languages. The same obsession with Mary Magdalene in people who had never met. There is no gain, no script, no simple explanation. The only conclusion he accepts is that reality is <span class="highlight">much stranger than Cartesian investigation would like to admit</span>.
+  </div>
+  <div class="question">
+    <strong>Final question:</strong> According to Luigi, why can he not dismiss the whole story as coincidence?
+    <div class="choices">
+      <button onclick="answer(this, false)">A) Because he has believed in aliens since childhood</button>
+      <button onclick="answer(this, true)">B) Because disconnected details — 444, Lily, the drawing, the Mary Magdalene obsession — align across people with no contact</button>
+      <button onclick="answer(this, false)">C) Because the officer officially confirmed everything</button>
+    </div>
+    <div class="feedback">Correct. The power of the report lies in connections that should not exist.</div>
+  </div>
+</div>
+
+<div class="nav">
+  <button id="prev" onclick="changeScene(-1)" disabled>Previous</button>
+  <button id="next" onclick="changeScene(1)">Next</button>
+</div>
+
+<script>
+  let current = 1;
+  const total = 8;
+  function update() {
+    document.querySelectorAll('.scene').forEach((el, i) => {
+      el.classList.toggle('active', i + 1 === current);
+    });
+    document.getElementById('progress').textContent = `Scene ${current} of ${total}`;
+    document.getElementById('prev').disabled = current === 1;
+    document.getElementById('next').disabled = current === total;
+    if (current === total) document.getElementById('next').textContent = 'Finish';
+    else document.getElementById('next').textContent = 'Next';
+  }
+  function changeScene(dir) {
+    const next = current + dir;
+    if (next < 1 || next > total) return;
+    current = next;
+    update();
+  }
+  function answer(btn, correct) {
+    const parent = btn.closest('.choices');
+    parent.querySelectorAll('button').forEach(b => {
+      b.disabled = true;
+      b.classList.remove('correct','wrong');
+    });
+    btn.classList.add(correct ? 'correct' : 'wrong');
+    const feedback = parent.nextElementSibling;
+    if (feedback && feedback.classList.contains('feedback')) {
+      feedback.style.display = 'block';
+    }
+  }
+  update();
+</script>
+
+</body>
+</html>

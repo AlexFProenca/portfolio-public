@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aula do Derek - Alfabetizacao</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: linear-gradient(135deg, #dff6f0, #c9f0e8);
+    color: #1f3a3a;
+    font-family: 'Segoe UI', 'Comic Sans MS', system-ui, sans-serif;
+    overflow: hidden;
+    user-select: none;
+  }
+  body {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 16px;
+  }
+  .header {
+    display: flex; align-items: center; gap: 12px; width: 100%; max-width: 900px;
+  }
+  .avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, #7be0d4, #00ffc8);
+    display: grid; place-items: center; font-size: 26px;
+    box-shadow: 0 8px 20px rgba(0,255,200,0.35);
+  }
+  .title {
+    font-size: 22px; font-weight: 700; letter-spacing: 1px;
+  }
+  .subtitle {
+    font-size: 12px; color: #4f7676; letter-spacing: 1.6px; text-transform: uppercase;
+  }
+  .board {
+    width: 100%; max-width: 900px;
+    display: grid; grid-template-columns: 1fr 360px; gap: 14px;
+    align-items: stretch;
+  }
+  .card {
+    background: rgba(255,255,255,0.85);
+    border: 2px solid rgba(0,230,200,0.35);
+    box-shadow: 0 14px 30px rgba(0,0,0,0.10);
+    border-radius: 18px;
+    padding: 16px;
+    backdrop-filter: blur(6px);
+  }
+  .word-area {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; min-height: 360px;
+  }
+  .image {
+    width: 220px; height: 220px; border-radius: 18px;
+    background: radial-gradient(circle at 30% 30%, #ffffff, #d7f5ef);
+    border: 2px solid rgba(0,230,200,0.30);
+    box-shadow: inset 0 0 0 8px rgba(0,230,200,0.08), 0 14px 30px rgba(0,0,0,0.10);
+    display: grid; place-items: center; font-size: 110px;
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .image svg {
+    width: 70%; height: 70%;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.18));
+  }
+  .image:hover { transform: translateY(-4px); }
+  .image:active { transform: translateY(2px) scale(0.98); }
+  .image.correct {
+    animation: bounce .6s ease;
+    box-shadow: inset 0 0 0 10px rgba(0,255,157,0.25), 0 0 30px rgba(0,255,157,0.25);
+  }
+  .image.wrong {
+    animation: shake .5s ease;
+    box-shadow: inset 0 0 0 10px rgba(255,120,120,0.25), 0 0 30px rgba(255,120,120,0.25);
+  }
+  @keyframes bounce {
+    0%,100% { transform: translateY(0); }
+    40% { transform: translateY(-18px); }
+    70% { transform: translateY(6px); }
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-10px); }
+    80% { transform: translateX(10px); }
+  }
+  .slots {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center;
+  }
+  .slot {
+    min-width: 100px; height: 64px; border-radius: 14px;
+    border: 2px dashed rgba(0,230,200,0.55);
+    background: rgba(0,255,240,0.12);
+    display: grid; place-items: center;
+    font-size: 24px; font-weight: 700; letter-spacing: 2px;
+    color: #0f525f; padding: 0 10px;
+    transition: all .15s ease;
+  }
+  .slot.filled {
+    border-style: solid;
+    background: linear-gradient(135deg, #aef6e7, #7be0d4);
+    color: #03363b;
+    box-shadow: 0 8px 16px rgba(0,230,200,0.35);
+    transform: translateY(-2px);
+  }
+  .sidebar {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .progress {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 12px; color: #4f7676; letter-spacing: 1.2px; text-transform: uppercase;
+  }
+  .pips {
+    display: flex; gap: 6px;
+  }
+  .pip {
+    width: 22px; height: 10px; border-radius: 4px;
+    background: rgba(0,230,200,0.18);
+    border: 1px solid rgba(0,230,200,0.35);
+    transition: all .2s ease;
+  }
+  .pip.done {
+    background: linear-gradient(90deg, #7be0d4, #00ffc8);
+    box-shadow: 0 0 10px rgba(0,255,200,0.35);
+    border-color: transparent;
+  }
+  .label {
+    font-size: 11px; letter-spacing: 1.2px; color: #4f7676;
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .options {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .opt {
+    height: 56px; border-radius: 14px; border: 2px solid rgba(0,230,200,0.30);
+    background: linear-gradient(135deg, #ffffff, #d7f5ef);
+    color: #0f525f; font-size: 22px; font-weight: 800; letter-spacing: 2px;
+    display: grid; place-items: center;
+    cursor: pointer;
+    transition: transform .12s ease, background .2s ease, box-shadow .2s ease;
+  }
+  .opt:hover { transform: translateY(-3px); background: linear-gradient(135deg, #aef6e7, #7be0d4); }
+  .opt:active { transform: translateY(2px) scale(0.97); }
+  .opt.used {
+    opacity: 0.35; pointer-events: none;
+    box-shadow: none;
+  }
+  .msg {
+    font-size: 16px; font-weight: 700;
+    min-height: 22px; text-align: center;
+    color: #0f525f;
+  }
+  .msg.ok { color: #008f6a; }
+  .msg.bad { color: #c0392b; }
+  .footer {
+    font-size: 11px; color: #6b9494; letter-spacing: 1px;
+  }
+  .reward {
+    position: fixed; inset: 0; display: grid; place-items: center;
+    background: rgba(15, 40, 40, 0.55); backdrop-filter: blur(8px); z-index: 50;
+  }
+  .reward.hidden { display: none; }
+  .reward-card {
+    width: 90%; max-width: 560px; max-height: 85vh;
+    background: linear-gradient(135deg,#ffffff,#d7f5ef);
+    border: 2px solid rgba(0,230,200,0.35);
+    border-radius: 22px; padding: 22px; box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+    display: flex; flex-direction: column; gap: 14px; align-items: center;
+    text-align: center;
+  }
+  .reward-title {
+    font-size: 16px; color: #4f7676; letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .reward-emoji { font-size: 56px; }
+  .reward-text {
+    font-size: 18px; font-weight: 700; color: #0f525f; line-height: 1.5;
+  }
+  .reward-btn {
+    height: 50px; padding: 0 22px; border-radius: 14px; border: none;
+    background: linear-gradient(135deg,#00ffc8,#7be0d4); color: #03363b;
+    font-size: 16px; font-weight: 800; cursor: pointer; letter-spacing: 1px;
+  }
+  .reward-btn:hover { transform: translateY(-2px); }
+  .reward-btn:active { transform: translateY(1px); }
+
+  #intro { position:fixed; inset:0; display:grid; place-items:center; background:rgba(15,40,40,.55); backdrop-filter:blur(8px); z-index:60; }
+  #intro.hidden { display:none; }
+  .intro-card { width:90%; max-width:520px; max-height:85vh; background:linear-gradient(135deg,#ffffff,#d7f5ef); border:2px solid rgba(0,230,200,.35); border-radius:22px; padding:22px; box-shadow:0 24px 60px rgba(0,0,0,.25); display:flex; flex-direction:column; gap:14px; align-items:center; text-align:center; }
+  .intro-title { font-size:18px; font-weight:800; color:#0f525f; letter-spacing:1px; }
+  .intro-sub { font-size:13px; color:#4f7676; letter-spacing:1.2px; text-transform:uppercase; }
+  .profile-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; width:100%; }
+  .profile-btn { height:64px; border-radius:14px; border:2px solid rgba(0,230,200,.35); background:linear-gradient(135deg,#ffffff,#d7f5ef); color:#0f525f; font-size:16px; font-weight:800; cursor:pointer; letter-spacing:1px; }
+  .profile-btn:hover { transform:translateY(-2px); background:linear-gradient(135deg,#aef6e7,#7be0d4); }
+  .profile-btn:disabled { opacity:.4; cursor:not-allowed; }
+</style>
+</head>
+<body>
+
+  <div id="intro">
+    <div class="intro-card">
+      <div class="intro-title">Escolha um perfil</div>
+      <div class="intro-sub">3 slots de salvamento</div>
+      <div class="profile-grid" id="profileGrid">
+        <button class="profile-btn" data-slot="0">Perfil 1</button>
+        <button class="profile-btn" data-slot="1">Perfil 2</button>
+        <button class="profile-btn" data-slot="2">Perfil 3</button>
+      </div>
+      <div class="intro-sub" id="profileInfo" style="min-height:18px"></div>
+    </div>
+  </div>
+
+    <div class="header">
+    <div class="avatar header-badge" id="headerBadge">🚀</div>
+    <div>
+      <div class="title">Aula do Derek</div>
+      <div class="subtitle" id="subtitle">Nivel 1 · 2 silabas</div>
+    </div>
+  </div>
+
+  <div class="board">
+    <div class="card word-area">
+      <div class="image" id="wordImage"></div>
+      <div class="msg" id="msg">Clique nos sons para formar a palavra</div>
+      <div class="slots" id="slots"></div>
+    </div>
+
+    <div class="card sidebar">
+      <div>
+        <div class="progress">
+          <span>Fase <span id="phaseNum">1</span>/10</span>
+          <div class="pips" id="pips"></div>
+        </div>
+      </div>
+      <div>
+        <div id="livesWrap"></div>
+      </div>
+      <div>
+        <div class="label">Sons</div>
+        <div class="options" id="options"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="reward" class="reward hidden">
+    <div class="reward-card">
+      <div class="reward-title" id="rewardTitle">Recompensa desbloqueada!</div>
+      <div class="reward-emoji" id="rewardEmoji">💖</div>
+      <div class="reward-text" id="rewardText"></div>
+      <button id="rewardClose" class="reward-btn">Entendi!</button>
+    </div>
+  </div>
+
+<div class="footer">Toque nas silabas · clique na imagem para conferir · <span id="debugState" style="opacity:.85;font-weight:700"></span></div>
+
+<script>
+(function() {
+  const LEVELS = [
+    ['OVO','TATU','SOLA','PIPA','LOBO','FOCA','UVA','SAPO','BOLA','RATO'],
+    ['PAPEL','SOLTO','VENTO','PRATO','NUVEM','GELO','TRATOR','BARCO','FAROL','MISTO'],
+    ['FLORES','PERFIL','ESCOLA','RAPOSA','FRUTAS','TURMAS','BOLOSA','PLACA','GARRAFA','BADULA'],
+    ['FLAMINGO','SAPINHO','ESMERALDA','TORREMOLE','PIRULITO','COZINHA','TRAPEZIO','CASTELO','FOGUETE','FLORESTA']
+  ];
+
+  const PHASES_PER_LEVEL = 10;
+
+  const LEVEL_CONFIG = [
+    { badge:'🚀', label:'Nivel 1 · 2 silabas', emoji:'🥚' },
+    { badge:'🎓', label:'Nivel 2 · 3 silabas', emoji:'📄' },
+    { badge:'⚡', label:'Nivel 3 · 3 silabas longas', emoji:'🌸' },
+    { badge:'🦩', label:'Nivel 4 · 3-5 silabas', emoji:'🦩' }
+  ];
+
+  const IMAGES = {
+    OVO:'./images/OVO.png', TATU:'./images/TATU.png', SOLA:'./images/SOLA.png', PIPA:'./images/PIPA.png', LOBO:'./images/LOBO.png',
+    FOCA:'./images/FOCA.png', UVA:'./images/UVA.png', SAPO:'./images/SAPO.png', BOLA:'./images/BOLA.png', RATO:'./images/RATO.png',
+    PAPEL:'./images/PAPEL.png', SOLTO:'./images/SOLTO.png', VENTO:'./images/VENTO.png', PRATO:'./images/PRATO.png', NUVEM:'./images/NUVEM.png', GELO:'./images/GELO.png', TRATOR:'./images/TRATOR.png', BARCO:'./images/BARCO.png', FAROL:'./images/FAROL.png', MISTO:'./images/MISTO.png',
+    FLORES:'./images/FLORES.png', PERFIL:'./images/PERFIL.png', ESCOLA:'./images/ESCOLA.png', RAPOSA:'./images/RAPOSA.png', FRUTAS:'./images/FRUTAS.png', TURMAS:'./images/TURMAS.png', BOLOSA:'./images/BOLOSA.png', PLACA:'./images/PLACA.png', GARRAFA:'./images/GARRAFA.png', BADULA:'./images/BADULA.png',
+    FLAMINGO:'./images/FLAMINGO.png', SAPINHO:'./images/SAPINHO.png', ESMERALDA:'./images/ESMERALDA.png', TORREMOLE:'./images/TORREMOLE.png', PIRULITO:'./images/PIRULITO.png', COZINHA:'./images/COZINHA.png', TRAPEZIO:'./images/TRAPEZIO.png', CASTELO:'./images/CASTELO.png', FOGUETE:'./images/FOGUETE.png', FLORESTA:'./images/FLORESTA.png'
+  };
+
+  const SPLITS = {
+    OVO:['O','VO'], TATU:['TA','TU'], SOLA:['SO','LA'], PIPA:['PI','PA'], LOBO:['LO','BO'],
+    FOCA:['FO','CA'], UVA:['U','VA'], SAPO:['SA','PO'], BOLA:['BO','LA'], RATO:['RA','TO'],
+    PAPEL:['PA','PEL'], SOLTO:['SOL','TO'], VENTO:['VEN','TO'], PRATO:['PRA','TO'],
+    NUVEM:['NU','VEM'], GELO:['GE','LO'], TRATOR:['TRA','TOR'], BARCO:['BAR','CO'],
+    FAROL:['FA','ROL'], MISTO:['MIS','TO'],
+    FLORES:['FLO','RES'], PERFIL:['PER','FIL'], ESCOLA:['ES','CO','LA'], RAPOSA:['RA','PO','SA'],
+    FRUTAS:['FRU','TAS'], TURMAS:['TUR','MAS'], BOLOSA:['BO','LO','SA'], PLACA:['PLA','CA'],
+    GARRAFA:['GAR','RA','FA'], BADULA:['BA','DU','LA'],
+    FLAMINGO:['FLA','MIN','GO'], SAPINHO:['SA','PI','NHO'], ESMERALDA:['ES','ME','RAL','DA'],
+    TORREMOLE:['TOR','RE','MO','LE'], PIRULITO:['PI','RU','LI','TO'],
+    COZINHA:['CO','ZI','NHA'], TRAPEZIO:['TRA','PE','ZIO'], CASTELO:['CAS','TE','LO'],
+    FOGUETE:['FO','GUE','TE'], FLORESTA:['FLO','RE','STA']
+  };
+
+  const SYLLABLES = {
+    OVO:['O','VO','BO','DO','FO','GO'], TATU:['TA','TU','DA','DU','GA','GU'],
+    SOLA:['SO','LA','SA','LO','MA','MO'], PIPA:['PI','PA','PE','PO','BI','BA'],
+    LOBO:['LO','BO','LA','BE','BI','BU'], FOCA:['FO','CA','FE','CI','BI','BA'],
+    UVA:['U','VA','VI','VO','BA','BE'], SAPO:['SA','PO','SE','PI','BI','BO'],
+    BOLA:['BO','LA','BE','LI','BA','LO'], RATO:['RA','TO','RE','TI','RU','TA'],
+    PAPEL:['PA','PEL','PE','LA','PO','PI'], SOLTO:['SOL','TO','SO','LU','TA','TU'],
+    VENTO:['VEN','TO','VE','TA','LI','TU'], PRATO:['PRA','TO','PRA','PA','RA','TA'],
+    NUVEM:['NU','VEM','NE','VI','BU','BA'], GELO:['GE','LO','GA','LE','GI','LI'],
+    TRATOR:['TRA','TOR','TR','RA','TA','TO'], BARCO:['BAR','CO','BA','RO','PA','CA'],
+    FAROL:['FA','ROL','FE','RA','FO','LU'], MISTO:['MIS','TO','ME','SI','MU','TI'],
+    FLORES:['FLO','RES','FL','LO','RE','ES'], PERFIL:['PER','FIL','PE','FI','RE','ER'],
+    ESCOLA:['ES','CO','LA','CE','CO','SA'], RAPOSA:['RA','PO','SA','RO','SO','PA'],
+    FRUTAS:['FRU','TAS','TU','RU','TA','FA'], TURMAS:['TUR','MAS','TU','RU','MA','UR'],
+    BOLOSA:['BO','LO','SA','BA','LA','SO'], PLACA:['PLA','CA','LA','PA','CA','PI'],
+    GARRAFA:['GAR','RA','FA','GA','AR','AF'], BADULA:['BA','DU','LA','BE','DA','UL'],
+    FLAMINGO:['FLA','MIN','GO','FL','MA','IN'], SAPINHO:['SA','PI','NHO','SI','NO','PA'],
+    ESMERALDA:['ES','ME','RAL','DA','RE','LE'], TORREMOLE:['TOR','RE','MO','LE','TE','OR'],
+    PIRULITO:['PI','RU','LI','TO','RO','LI'], COZINHA:['CO','ZI','NHA','CI','HA','NE'],
+    TRAPEZIO:['TRA','PE','ZIO','RE','TE','ZI'], CASTELO:['CAS','TE','LO','CA','ES','TE'],
+    FOGUETE:['FO','GUE','TE','GO','UE','QU'], FLORESTA:['FLO','RE','STA','LA','TE','ES']
+  };
+
+  const REWARDS = [
+    {
+      audio: 'segredo_flamingos',
+      emoji: '🦩',
+      text: 'O Segredo dos Flamingos Rosa: Eles nascem cinzas. Quando os bebês flamingos saem do ovo, eles são cinzentos e fofinhos, parecendo um patinho comum.\n\nA comida mágica: Eles mudam de cor porque comem muitas algas e mini-camarões específicos.\n\nO superpoder da cor: Esses alimentos têm uma substância colorida natural chamada carotenoide, o mesmo elemento que deixa a cenoura laranja.\n\nVocê é o que você come: O corpo do flamingo absorve essa cor e, devagarzinho, transforma as penas cinzas em um rosa bem brilhante.\n\nO teste do espelho: Se um flamingo parar de comer esse tipo de comida, as penas novas dele voltam a nascer brancas ou cinzentas.'
+    },
+    {
+      audio: 'recompensa_polvo',
+      emoji: '🐙',
+      text: 'Os polvos têm três corações e o sangue deles é azul. Dois corações servem apenas para empurrar o sangue até as brânquias, que é por onde eles respiram debaixo d\'água. O terceiro coração, que é o maior de todos, trabalha para bombear o sangue para o resto de todo o corpo. O sangue deles é azul porque, em vez de ferro, possui uma substância rica em cobre para transportar o oxigênio no fundo do mar gelado. Quando o polvo decide nadar bem rápido, o coração principal dele se cansa tanto que para de bater por alguns instantes, e é por isso que eles preferem andar rastejando calmamente pelas pedras.'
+    },
+    {
+      audio: 'recompensa_chimpanze',
+      emoji: '🐒',
+      text: 'Você sabia que nós somos primos muito próximos dos chimpanzés? O nosso corpinho é bem parecido com o deles! Eles são tão espertos que conseguem conversar com as pessoas usando as mãos, fazendo os mesmos sinais que quem não fala usa. A nossa mãozinha é um pouco diferente da deles porque o nosso dedão consegue encostar em todos os outros dedos. É por isso que você consegue segurar um lápis para desenhar tão bem! Os macaquinhos também adoram usar brinquedos da floresta. Eles pegam pedras para quebrar sementes duras e comem o que tem dentro, e usam galhos de árvore para pegar comidinha.'
+    },
+    {
+      audio: 'recompensa_fogo',
+      emoji: '🔥',
+      text: 'Ultima recompensa: voce completou todos os niveis!'
+    }
+  ];
+
+  const $ = id => document.getElementById(id);
+
+  const STATE_KEY_PREFIX = 'derek_profile_';
+
+  let currentProfile = -1;
+
+  function saveState() {
+    if (currentProfile < 0) return;
+    try {
+      localStorage.setItem(STATE_KEY_PREFIX + currentProfile, JSON.stringify({ currentLevel, currentPhase, completedPhases, lives }));
+    } catch (e) {}
+  }
+
+  function loadState() {
+    if (currentProfile < 0) return null;
+    try {
+      const raw = localStorage.getItem(STATE_KEY_PREFIX + currentProfile);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) { return null; }
+  }
+
+  function clearState() {
+    if (currentProfile < 0) return null;
+    try { localStorage.removeItem(STATE_KEY_PREFIX + currentProfile); } catch (e) {}
+    return null;
+  }
+
+  let currentLevel = 0;
+  let currentPhase = 0;
+  let completedPhases = 0;
+  let answer = '';
+  let placed = [];
+  let done = false;
+  let lives = 5;
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function renderLives() {
+    const wrap = $('livesWrap');
+    if (!wrap) return;
+    let html = '<div style="font-size:11px;color:#4f7676;letter-spacing:1px;text-transform:uppercase;">Vidas</div><div style="display:flex;gap:5px;">';
+    for (let i = 0; i < 5; i++) {
+      const filled = i < lives;
+      html += `<div style="font-size:18px;color:${filled ? '#ff3b3b' : '#cfc0c0'};filter:${filled ? 'drop-shadow(0 0 8px rgba(255,60,60,.6))' : 'none'};">${filled ? '❤️' : '🖤'}</div>`;
+    }
+    html += '</div>';
+    wrap.innerHTML = html;
+  }
+
+  function showReward(levelIndex) {
+    const idx = Math.max(0, Math.min((levelIndex || 0), REWARDS.length - 1));
+    const data = REWARDS[idx];
+    $('rewardTitle').textContent = 'Recompensa desbloqueada!';
+    $('rewardEmoji').textContent = data.emoji;
+    $('rewardText').textContent = data.text;
+    $('reward').classList.remove('hidden');
+    try { playAudio(data.audio); } catch (e) {}
+  }
+
+  function playAudio(name) {
+    try {
+      const audio = new Audio('audio/' + name + '.mp3');
+      audio.volume = 0.95;
+      audio.play().catch(() => {});
+    } catch (e) {}
+  }
+
+  function resetPhase(forceFresh) {
+    try {
+      const saved = (!forceFresh) ? loadState() : null;
+      let word;
+      if (saved && saved.lives > 0) {
+        currentLevel = Math.max(0, Math.min((saved.currentLevel || 0), LEVELS.length - 1));
+        currentPhase = Math.max(0, Math.min((saved.currentPhase || 0), PHASES_PER_LEVEL - 1));
+        completedPhases = Math.max(0, Math.min((saved.completedPhases || 0), PHASES_PER_LEVEL));
+        lives = Math.max(0, Math.min((saved.lives || 0), 5));
+      }
+      word = LEVELS[currentLevel] && LEVELS[currentLevel][currentPhase];
+      if (!word) {
+        currentLevel = 0;
+        currentPhase = 0;
+        completedPhases = 0;
+        word = LEVELS[0][0];
+      }
+      answer = word;
+      const parts = SPLITS[word] || [word.slice(0, 2), word.slice(2)];
+      placed = new Array(parts.length).fill(null);
+      done = false;
+
+      const cfg = LEVEL_CONFIG[currentLevel] || LEVEL_CONFIG[0];
+      $('subtitle').textContent = cfg.label;
+      $('headerBadge').textContent = cfg.badge;
+
+      $('phaseNum').textContent = currentPhase + 1;
+      $('wordImage').innerHTML = IMAGES[word] ? `<img src='${IMAGES[word]}' style='width:70%;height:70%;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.18));'>` : '📖';
+      $('wordImage').className = 'image';
+      $('msg').textContent = 'Clique nos sons para formar a palavra';
+      $('msg').className = 'msg';
+
+      const slotsHtml = parts.map((_, i) => `<div class="slot" id="slot-${i}"></div>`).join('');
+      $('slots').innerHTML = slotsHtml;
+
+      let opts = new Set(parts);
+      const distractors = (SYLLABLES[word] || []).filter(s => !opts.has(s));
+      while (opts.size < 6 && distractors.length) opts.add(distractors.pop());
+      opts = shuffle([...opts]);
+
+      const optHtml = opts.map(s => `<div class="opt" data-syl="${s}">${s}</div>`).join('');
+      $('options').innerHTML = optHtml;
+
+      const pipHtml = Array.from({ length: PHASES_PER_LEVEL }, (_, i) =>
+        `<div class="pip ${i < completedPhases ? 'done' : ''}"></div>`
+      ).join('');
+      $('pips').innerHTML = pipHtml;
+
+      setTimeout(() => playAudio('syl_' + parts[0]), 400);
+      setTimeout(() => playAudio('syl_' + parts[1]), 1100);
+      setTimeout(() => playAudio('word_' + word), 1700);
+      if (!window.__derekDiag) { window.__derekDiag = {}; }
+      window.__derekDiag.state = {currentLevel, currentPhase, word: word || null, lives};
+      const dbg = document.getElementById('debugState');
+      if (dbg) dbg.textContent = `L${currentLevel} P${currentPhase}/${PHASES_PER_LEVEL} ❤${lives}`;
+      renderLives();
+    } catch (e) {
+      const dbg = document.getElementById('debugState');
+      if (dbg) dbg.textContent = 'ERRO:' + e.message;
+      $('msg').textContent = 'Erro ao carregar fase. Recarregue a pagina.';
+      $('msg').className = 'msg bad';
+    }
+  }
+
+  function placeSyllable(syl, slotIdx) {
+    const slot = $('slot-' + slotIdx);
+    if (!slot) return;
+    slot.textContent = syl;
+    slot.classList.add('filled');
+    placed[slotIdx] = syl;
+
+    const opts = document.querySelectorAll('.opt');
+    opts.forEach(o => { if (o.dataset.syl === syl) o.classList.add('used'); });
+
+    playAudio('syl_' + syl);
+  }
+
+  function removeFromSlot(slot) {
+    if (done) return;
+    const idx = Number(slot.id.split('-')[1]);
+    const syl = placed[idx];
+    if (!syl) return;
+    placed[idx] = null;
+    slot.textContent = '';
+    slot.classList.remove('filled');
+    const opts = document.querySelectorAll('#options .opt');
+    opts.forEach(o => { if (o.dataset.syl === syl) o.classList.remove('used'); });
+    playAudio('syl_' + syl);
+  }
+
+  function advanceAfterCorrect() {
+    completedPhases += 1;
+    if (completedPhases >= PHASES_PER_LEVEL) {
+      done = true;
+      setTimeout(() => showReward(currentLevel), 1600);
+    } else {
+      currentPhase = completedPhases;
+      saveState();
+      setTimeout(() => resetPhase(false), 1600);
+    }
+  }
+
+  function checkWord() {
+    if (done) return;
+    const built = placed.join('');
+    if (built === answer) {
+      $('msg').textContent = 'Muito bem! 🎉';
+      $('msg').className = 'msg ok';
+      $('wordImage').classList.add('correct');
+      playAudio('phrase_muito');
+      done = true;
+      saveState();
+      setTimeout(() => advanceAfterCorrect(), 1600);
+    } else {
+      $('msg').textContent = 'Quase... tente de novo!';
+      $('msg').className = 'msg bad';
+      $('wordImage').classList.add('wrong');
+      playAudio('phrase_quase');
+      lives -= 1;
+      saveState();
+      renderLives();
+      if (lives <= 0) {
+        $('msg').textContent = 'Sem vidas! Clique na imagem para recomecar. 😢';
+        $('msg').className = 'msg bad';
+        done = true;
+      } else {
+        setTimeout(() => {
+          $('wordImage').classList.remove('wrong');
+          $('msg').textContent = 'Clique nos sons para formar a palavra';
+          $('msg').className = 'msg';
+        }, 1000);
+      }
+    }
+  }
+
+  document.getElementById('options').addEventListener('click', (e) => {
+    if (done) return;
+    const opt = e.target.closest('.opt');
+    if (!opt || opt.classList.contains('used')) return;
+    const syl = opt.dataset.syl;
+    const empty = placed.findIndex(x => x === null);
+    if (empty === -1) return;
+    placeSyllable(syl, empty);
+  });
+
+  document.getElementById('slots').addEventListener('click', (e) => {
+    const slot = e.target.closest('.slot');
+    if (slot) removeFromSlot(slot);
+  });
+  document.getElementById('slots').addEventListener('contextmenu', (e) => {
+    const slot = e.target.closest('.slot');
+    if (slot) { e.preventDefault(); removeFromSlot(slot); }
+  });
+
+  document.getElementById('wordImage').addEventListener('click', () => {
+    if (lives <= 0) {
+      clearState();
+      currentProfile = -1;
+      $('intro').classList.remove('hidden');
+      updateProfileButtons();
+      renderLives();
+      return;
+    }
+    if (done) return;
+    const allFilled = placed.every(x => x !== null);
+    if (!allFilled) {
+      $('msg').textContent = 'Preencha todas as silabas primeiro!';
+      $('msg').className = 'msg';
+      playAudio('phrase_preencha');
+      return;
+    }
+    checkWord();
+  });
+
+  document.getElementById('rewardClose').addEventListener('click', () => {
+    $('reward').classList.add('hidden');
+    if (lives <= 0) {
+      clearState();
+      lives = 5;
+      completedPhases = 0;
+      currentPhase = 0;
+      currentLevel = 0;
+      resetPhase(true);
+      return;
+    }
+    if (done) {
+      done = false;
+      currentPhase = 0;
+      completedPhases = 0;
+      currentLevel += 1;
+      if (currentLevel >= LEVELS.length) {
+        $('msg').textContent = 'Parabens! Voce completou todos os niveis! 🎉';
+        $('msg').className = 'msg ok';
+        showReward(LEVELS.length - 1);
+      } else {
+        saveState();
+        resetPhase(false);
+      }
+    }
+  });
+
+
+  function updateProfileButtons() {
+    for (let i=0;i<3;i++) {
+      const raw=localStorage.getItem(STATE_KEY_PREFIX+i);
+      const btn=$('profileGrid').children[i];
+      if (!btn) continue;
+      const hasSave=!!raw;
+      btn.disabled = false;
+      btn.textContent = hasSave ? 'Perfil '+String(i+1)+' ✓' : 'Perfil '+String(i+1);
+    }
+    const info=$('profileInfo');
+    if (info) info.textContent='Clique para continuar ou iniciar novo jogo';
+    const dbg = document.getElementById('debugState');
+    if (dbg) dbg.textContent = 'MENU';
+  }
+
+  document.getElementById('profileGrid').addEventListener('click', (e) => {
+    const dbg = document.getElementById('debugState');
+    if (dbg) dbg.textContent = 'CLICKED';
+    const btn = e.target.closest('.profile-btn');
+    if (!btn) return;
+    const slot = Number(btn.dataset.slot);
+    if (!Number.isInteger(slot) || slot < 0 || slot > 2) return;
+    currentProfile = slot;
+    try {
+      const saved = loadState();
+      if (saved && saved.lives > 0) {
+        currentLevel = Math.max(0, Math.min(saved.currentLevel||0, LEVELS.length-1));
+        currentPhase = Math.max(0, Math.min(saved.currentPhase||0, PHASES_PER_LEVEL-1));
+        completedPhases = Math.max(0, Math.min(saved.completedPhases||0, PHASES_PER_LEVEL));
+        lives = Math.max(0, Math.min(saved.lives||0, 5));
+      } else {
+        currentLevel = 0;
+        currentPhase = 0;
+        completedPhases = 0;
+        lives = 5;
+        saveState();
+      }
+    } catch (err) {
+      const dbg = document.getElementById('debugState');
+      if (dbg) dbg.textContent = 'LOAD ERR:' + err.message;
+    }
+    $('intro').classList.add('hidden');
+    try {
+      resetPhase(false);
+    } catch (err) {
+      const dbg = document.getElementById('debugState');
+      if (dbg) dbg.textContent = 'RESET ERR:' + err.message;
+    }
+  });
+
+  updateProfileButtons();
+
+  resetPhase(false);
+})();
+</script>
+</body>
+</html>

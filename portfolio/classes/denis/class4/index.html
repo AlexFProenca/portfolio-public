@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Social English — The Event Mixer</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: #0a0f14;
+    color: #e8eaed;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow-y: auto;
+    user-select: none;
+  }
+  body {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 16px;
+  }
+  .header {
+    width: 100%; max-width: 980px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .title { font-size: 18px; font-weight: 800; letter-spacing: .5px; }
+  .score { font-size: 14px; color: #9aa7b2; letter-spacing: 1px; }
+  .stage {
+    position: relative;
+    width: 100%; max-width: 980px;
+    aspect-ratio: 16 / 9;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: #000;
+  }
+  .scene-bg {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover; display: block;
+  }
+  .scene-gradient {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    background: #0b141c;
+  }
+  .scene-gradient .label {
+    font-size: 28px; font-weight: 800; color: #dce6ee; text-align: center;
+    letter-spacing: 1px; text-transform: uppercase; opacity: .35;
+  }
+  .vignette {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.25) 0%, transparent 35%, transparent 55%, rgba(0,0,0,0.75) 100%),
+      radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.45) 100%);
+    pointer-events: none;
+  }
+  .passage-card {
+    position: absolute; left: 12px; right: 12px; top: 12px;
+    background: rgba(8,12,18,0.78);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 14px;
+    min-height: 90px;
+  }
+  .passage-label {
+    font-size: 11px; color: #9aa7b2; letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .passage {
+    font-size: 15px; line-height: 1.35; color: #f4f5f7;
+  }
+  .question-card {
+    position: absolute; left: 12px; right: 12px; bottom: 12px;
+    background: rgba(8,12,18,0.82);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 14px;
+    min-height: 120px;
+  }
+  .counter {
+    font-size: 11px; color: #9aa7b2; letter-spacing: 1.4px; text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .qtext {
+    font-size: 16px; line-height: 1.35; color: #f4f5f7;
+  }
+  .choices {
+    width: 100%; max-width: 980px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .choice {
+    height: 60px; border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    color: #f1f3f5; font-size: 14px; font-weight: 700;
+    cursor: pointer; text-align: center;
+    transition: transform .12s ease, background .2s ease, box-shadow .2s ease;
+  }
+  .choice:hover { transform: translateY(-3px); background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)); box-shadow: 0 10px 24px rgba(0,0,0,0.4); }
+  .choice:active { transform: translateY(1px) scale(0.98); }
+  .choice.disabled { opacity: .55; pointer-events: none; }
+  .choice.correct { border-color: #00e6b8; color: #b9f6ea; box-shadow: 0 0 20px rgba(0,230,184,0.25); }
+  .choice.wrong { border-color: #ff6b6b; color: #fcc; box-shadow: 0 0 20px rgba(255,107,107,0.25); }
+  .progress { width: 100%; max-width: 980px; display: flex; gap: 6px; }
+  .pip {
+    height: 8px; flex: 1; border-radius: 4px;
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.14);
+  }
+  .pip.done { background: linear-gradient(90deg, #00e6b8, #00ffc8); border-color: transparent; box-shadow: 0 0 10px rgba(0,255,200,0.35); }
+  .footer { font-size: 11px; color: #5b6572; letter-spacing: 1px; }
+  .result {
+    position: absolute; inset: 0;
+    background: rgba(4,8,14,0.85);
+    backdrop-filter: blur(12px);
+    display: none; align-items: center; justify-content: center; flex-direction: column; gap: 14px;
+    padding: 24px; text-align: center;
+  }
+  .result h2 { margin: 0; font-size: 28px; }
+  .result p { margin: 0; color: #c8cdd4; }
+  .result button {
+    height: 52px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.14);
+    background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+    color: #f4f5f7; font-weight: 800; letter-spacing: .5px;
+    padding: 0 18px; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">Social English — The Event Mixer</div>
+    <div class="score"><span id="pts">0</span>/<span id="max">15</span></div>
+  </div>
+
+  <div class="stage">
+    <div class="scene-gradient" id="sceneGradient"><div class="label" id="sceneLabel">Event</div></div>
+    <img id="scene" class="scene-bg" style="display:none;" alt="scene">
+    <div class="vignette"></div>
+    <div class="passage-card" id="passageCard">
+      <div class="passage-label">Situation</div>
+      <div class="passage" id="passage">Initializing...</div>
+    </div>
+    <div class="question-card">
+      <div class="counter" id="counter">Q 1 / 15</div>
+      <div class="qtext" id="qtext">Initializing...</div>
+    </div>
+    <div class="result" id="result">
+      <h2 id="rtitle">Result</h2>
+      <p id="rtext">Score text</p>
+      <button id="replay">Play Again</button>
+    </div>
+  </div>
+
+  <div class="progress" id="progress"></div>
+  <div class="choices" id="choices"></div>
+  <div class="footer">DENIS — Social English · The Event Mixer</div>
+
+<script>
+(function() {
+  'use strict';
+  var $ = function(id) { return document.getElementById(id); };
+
+  var SCENE_LABELS = [
+    'Lobby','Conversation','Food & Drinks','Networking',
+    'Terrace','Registration','Question','Answer',
+    'Topic','Closing','Follow-up','Body language',
+    'Thanks','Phone','Goodbye'
+  ];
+
+      var ITEMS = [
+    {passage:"Denis arrives at a company mixer. A stranger smiles and says, 'Great event, isn't it?' He has never met this person before.", question:"What is a natural response?", options:["Yes, love it. Enjoying the music too.","I don't know. I was invited by a colleague.","No. I'm just here because my boss told me to.","I agree, but I don't like the host."], answer:0, scene:'scenes/scene_01.webp'},
+    {passage:"At the same event, the stranger asks Denis what he does. Denis works in animation and design.", question:"Which reply sounds most confident and natural?", options:["Why do you want to know my work?","I'm not sure about my job yet.","I only work when I really need money.","I work with animation and design."], answer:3, scene:'scenes/scene_02.webp'},
+    {passage:"Near the bar, Denis wants to walk away from a conversation politely because he sees a friend across the room.", question:"Which exit line is appropriate?", options:["Anyway, it was nice chatting with you.","See you later, probably not.","You talk too much. I need to go.","I'm bored. I have to leave now."], answer:0, scene:'scenes/scene_03.webp'},
+    {passage:"A guest asks Denis, 'Where are you based?' He currently lives in the same city where the event takes place.", question:"Pick the clearest and most natural answer.", options:["Maybe in the future.","Based? I'm standing here already.","I'm based here in this city.","I don't understand."], answer:2, scene:'scenes/scene_04.webp'},
+    {passage:"Denis is asked, 'What brings you here today?' He decided to come because of an invitation from his manager.", question:"What does the question actually want to know?", options:["How long his trip was","Where his ticket is","Why/How he came to the event","What color shirt he is wearing"], answer:2, scene:'scenes/scene_05.webp'},
+    {passage:"At the drinks table, Denis asks his new contact, 'How long have you been with the company?' The person says, 'About three years.'", question:"Which follow-up is the most conversational?", options:["Three years is too much.","I came here three years ago too.","Your company is probably fine.","That's nice, cool. How do you like it so far?"], answer:3, scene:'scenes/scene_06.webp'},
+    {passage:"A woman at the event says, 'It's my first time at one of these.' Denis wants to make her feel welcome.", question:"Choose the warm, socially smart response.", options:["You are new? That's weird.","Maybe you shouldn't come back.","Welcome! I've been to a few too — they usually get better after the first ten minutes.","Your first time? You look lost."], answer:2, scene:'scenes/scene_07.webp'},
+    {passage:"A foreign guest asks Denis, 'Do you know any good spots around here for dinner?' He does know a couple of casual places nearby.", question:"Which answer is helpful and friendly?", options:["Yes, but they're all terrible.","You should probably stay at the hotel.","Yes — there are a few nice casual spots nearby.","No, I never eat dinner around here."], answer:2, scene:'scenes/scene_08.webp'},
+    {passage:"A group asks if Denis wants to join them on the terrace for fresh air. He joined earlier, but still wants to stay polite.", question:"What is the best refusal?", options:["No. I prefer this room.","Terrace? I hate fresh air.","Take me with you immediately now.","I'd love to, but I'm heading out in a couple of minutes."], answer:3, scene:'scenes/scene_09.webp'},
+    {passage:"During small talk, someone says, 'What do you think about the industry lately?' Denis is honestly overwhelmed by recent changes.", question:"Pick a natural, balanced opinion reply.", options:["Industry? I don't really know it.","People always say that.","It's moving fast, honestly. Some changes are exciting, others stressful.","I hate it and I don't want to talk about it."], answer:2, scene:'scenes/scene_10.webp'},
+    {passage:"A presenter introduces herself as Ana. A minute later Denis calls her 'Miss Ana.' She laughs lightly.", question:"What went wrong socially?", options:["He forgot her name.","He spoke too slowly.","He used an unnecessarily formal title.","He asked a personal question."], answer:2, scene:'scenes/scene_11.webp'},
+    {passage:"Someone asks Denis, 'Are you on LinkedIn?' He does have an account and is open to connecting.", question:"What sounds natural and open for professional connection?", options:["Only when I'm really desperate.","I don't want anyone to find me.","LinkedIn? Never heard of it.","Yes, I am — that's a good idea."], answer:3, scene:'scenes/scene_12.webp'},
+    {passage:"A guest compliments Denis: 'Love your jacket, where did you get it?' He bought it at a regular store online.", question:"Which response is polite and typical at an event?", options:["Thanks! I actually found it online fairly recently.","It was expensive, really expensive.","Thanks, but you look worse than me.","I hate jackets, I didn't choose it."], answer:0, scene:'scenes/scene_13.webp'},
+    {passage:"Later, someone says, 'It was really nice speaking with you.' They clearly want to end the chat.", question:"How should Denis finish it gracefully?", options:["Same here — enjoy the rest of the night!","Please don't talk to anyone else.","Okay, goodbye forever.","Bye, finally!"], answer:0, scene:'scenes/scene_14.webp'},
+    {passage:"At the very end of the night, his manager asks, 'How did it go?' Denis met some useful contacts and had good conversations.", question:"Which closing summary sounds most professional yet human?", options:["Good — I met a few interesting people and some leads look promising.","Boring, everybody was annoying.","I already forgot everything, I don't care.","I met nobody at all."], answer:0, scene:'scenes/scene_15.webp'}
+  ];
+
+  var state = { idx: 0, score: 0, answered: false };
+
+  function setScene(url, idx) {
+    var grad = $('sceneGradient');
+    var label = $('sceneLabel');
+    var img = $('scene');
+    if (label) label.textContent = SCENE_LABELS[idx] || 'scene';
+    if (grad) grad.style.display = 'grid';
+    if (img) img.style.display = 'none';
+    if (!url) return;
+    var test = new window.Image();
+    test.onload = function() {
+      if (grad) grad.style.display = 'none';
+      if (img) { img.style.display = 'block'; img.src = url; }
+    };
+    test.onerror = function() {
+      if (grad) grad.style.display = 'grid';
+      if (img) img.style.display = 'none';
+    };
+    test.src = url;
+  }
+
+  function render() {
+    try {
+      var item = ITEMS[state.idx];
+      $('max').textContent = String(ITEMS.length);
+      $('pts').textContent = String(state.score);
+      $('counter').textContent = 'Q ' + (state.idx + 1) + ' / ' + ITEMS.length;
+      $('qtext').textContent = item.question;
+      $('passage').textContent = item.passage;
+      setScene(item.scene, state.idx);
+      $('choices').innerHTML = item.options.map(function(o, i) {
+        return '<div class="choice" data-i="' + i + '">' + String.fromCharCode(65 + i) + '. ' + o + '</div>';
+      }).join('');
+      state.answered = false;
+    } catch (e) {
+      console.error(e);
+      var q = $('qtext');
+      if (q) q.textContent = 'Error loading question.';
+    }
+  }
+
+  function ensurePips() {
+    var p = $('progress');
+    if (!p || p.children.length) return;
+    ITEMS.forEach(function(_, i) {
+      var d = document.createElement('div');
+      d.className = 'pip';
+      d.id = 'pip-' + i;
+      p.appendChild(d);
+    });
+  }
+
+  function pick(i) {
+    if (state.answered) return;
+    state.answered = true;
+    var item = ITEMS[state.idx];
+    var correct = i === item.answer;
+    var choices = document.querySelectorAll('.choice');
+    choices.forEach(function(el, j) {
+      el.classList.add('disabled');
+      if (j === item.answer) el.classList.add('correct');
+      else if (j === i && !correct) el.classList.add('wrong');
+    });
+    var pip = $('pip-' + state.idx);
+    if (pip) pip.className = 'pip done' + (correct ? ' hit' : '');
+    if (correct) {
+      state.score += 1;
+      $('pts').textContent = String(state.score);
+    }
+    setTimeout(function() {
+      state.idx += 1;
+      if (state.idx >= ITEMS.length) showResult();
+      else render();
+    }, correct ? 900 : 1500);
+  }
+
+  function showResult() {
+    var pct = Math.round((state.score / ITEMS.length) * 100);
+    $('result').style.display = 'flex';
+    $('rtitle').textContent = 'Quiz Complete';
+    $('rtext').textContent = state.score + ' / ' + ITEMS.length + ' (' + pct + '%)';
+  }
+
+  $('choices').addEventListener('click', function(e) {
+    var el = e.target.closest('.choice');
+    if (!el) return;
+    pick(Number(el.dataset.i));
+  });
+
+  $('replay').addEventListener('click', function() {
+    state.idx = 0; state.score = 0; state.answered = false;
+    $('result').style.display = 'none';
+    render();
+  });
+
+  function boot() {
+    ensurePips();
+    render();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

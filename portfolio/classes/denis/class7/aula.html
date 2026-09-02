@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Curiosities — The Telepathy Tapes</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: #f5f7fa;
+    color: #1a1f2e;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow-y: auto;
+    user-select: none;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 16px;
+  }
+  .header {
+    width: 100%; max-width: 980px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .title { font-size: 20px; font-weight: 800; letter-spacing: .5px; color: #0f766e; }
+  .score { font-size: 14px; color: #64748b; letter-spacing: 1px; }
+  .stage {
+    position: relative;
+    width: 100%; max-width: 980px;
+    aspect-ratio: 16 / 9;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: #fff;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+  }
+  .scene-bg {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover; display: block;
+  }
+  .scene-gradient {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    background: #e2e8f0;
+  }
+  .scene-gradient .label {
+    font-size: 28px; font-weight: 800; color: #94a3b8; text-align: center;
+    letter-spacing: 1px; text-transform: uppercase; opacity: .5;
+  }
+  .vignette {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.25) 0%, transparent 35%, transparent 55%, rgba(0,0,0,0.75) 100%),
+      radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.45) 100%);
+    pointer-events: none;
+  }
+  .passage-card {
+    position: absolute; left: 12px; right: 12px; top: 12px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 14px;
+    padding: 14px;
+    min-height: 90px;
+  }
+  .passage-label {
+    font-size: 11px; color: #64748b; letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .passage {
+    font-size: 15px; line-height: 1.35; color: #1a1f2e;
+  }
+  .question-card {
+    position: absolute; left: 12px; right: 12px; bottom: 12px;
+    background: rgba(255,255,255,0.98);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 14px;
+    padding: 14px;
+    min-height: 120px;
+  }
+  .question-label {
+    font-size: 12px; font-weight: 700; color: #0f766e; margin-bottom: 8px; letter-spacing: .3px;
+  }
+  .question-text {
+    font-size: 15px; line-height: 1.4; color: #1a1f2e; margin-bottom: 10px;
+  }
+  .options {
+    display: grid; gap: 8px;
+  }
+  .option {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 160ms ease;
+    color: #1a1f2e;
+    font-family: inherit;
+  }
+  .option:hover {
+    border-color: #0f766e;
+    background: #f0fdfa;
+  }
+  .option.correct {
+    border-color: #0f766e;
+    background: #0f766e;
+    color: #fff;
+  }
+  .option.wrong {
+    border-color: #dc2626;
+    background: #dc2626;
+    color: #fff;
+  }
+  .feedback {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #64748b;
+    font-style: italic;
+  }
+  .progress {
+    width: 100%; max-width: 980px;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: #0f766e;
+    border-radius: 3px;
+    transition: width 300ms ease;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">Curiosities — The Telepathy Tapes</div>
+    <div class="score"><span id="current">1</span>/12</div>
+  </div>
+  <div class="stage" id="stage">
+    <img class="scene-bg" id="scene" src="" alt="scene" />
+    <div class="scene-gradient" id="sceneFallback">
+      <div class="label">Scene <span id="sceneNum">1</span></div>
+    </div>
+    <div class="vignette"></div>
+    <div class="passage-card">
+      <div class="passage-label">Context</div>
+      <div class="passage" id="passage"></div>
+    </div>
+    <div class="question-card">
+      <div class="question-label" id="questionLabel"></div>
+      <div class="question-text" id="questionText"></div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  </div>
+  <div class="progress"><div class="progress-bar" id="progressBar" style="width: 0%"></div></div>
+
+<script>
+const questions = [
+  {
+    scene: 1,
+    passage: "The Telepathy Tapes is a podcast that investigates reports of telepathic communication in non-speaking autistic people.",
+    question: "What is the main topic of The Telepathy Tapes?",
+    options: [
+      "A cooking show",
+      "Telepathy and non-speaking autistic people",
+      "A travel documentary about New Jersey",
+      "A science fiction movie series"
+    ],
+    correct: 1,
+    explanation: "The podcast focuses on alleged telepathic abilities in non-speaking autistic individuals."
+  },
+  {
+    scene: 2,
+    passage: "Ky Dickens is the creator and host of The Telepathy Tapes. The show became very popular and reached high chart positions.",
+    question: "Who created The Telepathy Tapes?",
+    options: [
+      "Diane Hennacy Powell",
+      "Ky Dickens",
+      "A group of autistic activists",
+      "A major TV network"
+    ],
+    correct: 1,
+    explanation: "Ky Dickens is a documentary filmmaker who created the podcast."
+  },
+  {
+    scene: 3,
+    passage: "The podcast features stories of non-speaking autistic individuals who supposedly communicate through telepathy, especially with their parents.",
+    question: "What ability is claimed by some people in the podcast?",
+    options: [
+      "Flying without equipment",
+      "Telepathic communication",
+      "Predicting lottery numbers",
+      "Speaking 10 languages fluently"
+    ],
+    correct: 1,
+    explanation: "The podcast explores claims that some non-speaking autistic people can communicate telepathically."
+  },
+  {
+    scene: 4,
+    passage: "Diane Hennacy Powell, a former psychiatrist, appears in the podcast and has researched telepathy claims for about a decade.",
+    question: "What is Diane Hennacy Powell's role in the podcast?",
+    options: [
+      "She is a critic",
+      "She is a featured researcher and proponent",
+      "She composed the music",
+      "She is an autistic participant"
+    ],
+    correct: 1,
+    explanation: "Powell is heavily featured and supports the telepathy hypothesis."
+  },
+  {
+    scene: 5,
+    passage: "Science communicators and critics say the podcast relies on personal testimony, anecdotes, and controversial sources instead of solid peer-reviewed science.",
+    question: "According to critics, what is a major weakness of the podcast?",
+    options: [
+      "It is too short",
+      "It relies heavily on anecdotes instead of rigorous science",
+      "It has poor audio quality",
+      "It ignores the existence of autism"
+    ],
+    correct: 1,
+    explanation: "Critics argue it uses anecdotal claims rather than strong scientific evidence."
+  },
+  {
+    scene: 6,
+    passage: "The podcast briefly became very popular and even reached the number 1 spot on major podcast charts.",
+    question: "How successful was the podcast commercially?",
+    options: [
+      "It was ignored by listeners",
+      "It briefly reached No. 1 on podcast charts",
+      "It was cancelled after one episode",
+      "It was only released on paper"
+    ],
+    correct: 1,
+    explanation: "The podcast became a breakout hit and reached the top of podcast rankings."
+  },
+  {
+    scene: 7,
+    passage: "Many autistic advocates and self-advocates argue that emphasizing telepathy can overshadow real communication methods and AAC tools.",
+    question: "Why do some autistic advocates criticize the podcast?",
+    options: [
+      "They believe telepathy is already proven",
+      "They fear it may overshadow real communication methods",
+      "They want more music",
+      "They think the host should travel more"
+    ],
+    correct: 1,
+    explanation: "Advocates worry the focus on telepathy may distract from practical communication supports."
+  },
+  {
+    scene: 8,
+    passage: "Facilitated communication is a controversial method where a helper supports a person's hand while they type. Studies showed facilitators often influenced the messages.",
+    question: "What is facilitated communication?",
+    options: [
+      "A proven way to teach typing",
+      "A controversial support method sometimes linked to authorship concerns",
+      "A telepathy training program",
+      "A new autism cure"
+    ],
+    correct: 1,
+    explanation: "Facilitated communication is controversial because research showed facilitators sometimes authored the messages."
+  },
+  {
+    scene: 9,
+    passage: "The podcast argues that non-speaking autistic people may be trapped in aware minds without conventional ways to express themselves.",
+    question: "What emotional idea does the podcast emphasize?",
+    options: [
+      "Autism should be cured immediately",
+      "Non-speaking autistic people may have inner awareness without conventional expression",
+      "Telepathy is already accepted by all doctors",
+      "Only children can experience telepathy"
+    ],
+    correct: 1,
+    explanation: "A core emotional theme is the possibility of awareness without conventional speech."
+  },
+  {
+    scene: 10,
+    passage: "The show uses personal stories, interviews, and emotional moments rather than controlled scientific experiments.",
+    question: "What narrative style does the podcast mainly use?",
+    options: [
+      "Strict laboratory experiments",
+      "Personal testimony and emotional storytelling",
+      "Fictional drama scripts",
+      "News headlines read by a robot"
+    ],
+    correct: 1,
+    explanation: "It relies on interviews, anecdotes, and emotional narrative rather than controlled experiments."
+  },
+  {
+    scene: 11,
+    passage: "Some viewers compare the podcast to true crime or mystery formats because it presents extraordinary claims with emotional tension.",
+    question: "Which genre does the podcast resemble according to some listeners?",
+    options: [
+      "Romantic comedy",
+      "True crime / mystery",
+      "Cooking tutorial",
+      "Sports commentary"
+    ],
+    correct: 1,
+    explanation: "Its tone and structure are often compared to true crime or mystery storytelling."
+  },
+  {
+    scene: 12,
+    passage: "The Telepathy Tapes remains a cultural curiosity that mixes hope, mystery, and controversy about autism and consciousness.",
+    question: "What is the best description of the podcast today?",
+    options: [
+      "A universally accepted scientific breakthrough",
+      "A controversial cultural curiosity mixing hope, mystery, and doubt",
+      "A fictional sitcom about teleportation",
+      "An official educational curriculum"
+    ],
+    correct: 1,
+    explanation: "It is widely seen as a compelling but scientifically unproven cultural phenomenon."
+  }
+];
+
+let current = 0;
+let answered = false;
+
+const sceneEl = document.getElementById('scene');
+const fallbackEl = document.getElementById('sceneFallback');
+const sceneNumEl = document.getElementById('sceneNum');
+const passageEl = document.getElementById('passage');
+const questionLabelEl = document.getElementById('questionLabel');
+const questionTextEl = document.getElementById('questionText');
+const optionsEl = document.getElementById('options');
+const feedbackEl = document.getElementById('feedback');
+const currentEl = document.getElementById('current');
+const progressBar = document.getElementById('progressBar');
+
+function render(index) {
+  const q = questions[index];
+  sceneNumEl.textContent = q.scene;
+  currentEl.textContent = index + 1;
+  progressBar.style.width = ((index + 1) / questions.length * 100) + '%';
+  passageEl.textContent = q.passage;
+  questionLabelEl.textContent = 'Question';
+  questionTextEl.textContent = q.question;
+  feedbackEl.textContent = '';
+  answered = false;
+
+  optionsEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = opt;
+    btn.onclick = () => choose(i, btn);
+    optionsEl.appendChild(btn);
+  });
+}
+
+function choose(i, btn) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  const buttons = optionsEl.querySelectorAll('.option');
+  if (i === q.correct) {
+    btn.classList.add('correct');
+    feedbackEl.textContent = 'Correct! ' + q.explanation;
+  } else {
+    btn.classList.add('wrong');
+    buttons[q.correct].classList.add('correct');
+    feedbackEl.textContent = 'Not quite. ' + q.explanation;
+  }
+  setTimeout(() => {
+    current = (current + 1) % questions.length;
+    render(current);
+  }, 2200);
+}
+
+render(current);
+</script>
+</body>
+</html>
