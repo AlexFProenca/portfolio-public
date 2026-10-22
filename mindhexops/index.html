@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MindHexOps — Program your own mind | Windows overlay tool</title>
+<meta name="description" content="MindHexOps is a minimalist Windows app that displays your own messages and images as on-screen overlays, on a schedule, over any window. No accounts, no telemetry, no cloud.">
+<meta name="author" content="Alex Proença">
+<link rel="canonical" href="https://alexproenca.com/mindhexops/">
+
+<meta property="og:type" content="product">
+<meta property="og:title" content="MindHexOps — Program your own mind">
+<meta property="og:description" content="A minimalist Windows app that keeps your own messages and images in front of you, on a schedule, over any window.">
+<meta property="og:url" content="https://alexproenca.com/mindhexops/">
+<meta property="og:image" content="https://alexproenca.com/mindhexops/preview1.png">
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #050505;
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  header { padding: 80px 0 56px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .mark {
+    width: 88px; height: 88px; border: 1px solid rgba(255,255,255,.18);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 28px; background: #000;
+  }
+  .mark img { width: 56px; height: 56px; }
+  h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; }
+  .sub { font-size: 18px; color: #9a9a9a; max-width: 620px; margin-bottom: 32px; }
+  .cta-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    display: inline-block; padding: 14px 30px; border: 1px solid rgba(255,255,255,.3);
+    text-decoration: none; font-size: 13px; text-transform: uppercase;
+    letter-spacing: 1.2px; transition: background .25s, color .25s;
+  }
+  .btn:hover { background: #fff; color: #000; }
+  .btn-primary { background: #fff; color: #000; border-color: #fff; }
+  .btn-primary:hover { background: transparent; color: #fff; }
+  .note { font-size: 13px; color: #666; }
+
+  section { padding: 64px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: #7a7a7a; margin-bottom: 28px; font-weight: 600; }
+  h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  p { color: #b4b4b4; }
+  p + p { margin-top: 14px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+  .card { border: 1px solid rgba(255,255,255,.1); padding: 22px; background: rgba(255,255,255,.015); }
+  .card p { font-size: 14px; color: #8f8f8f; }
+
+  .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .shots img { width: 100%; border: 1px solid rgba(255,255,255,.1); display: block; }
+  @media (max-width: 700px) { .shots { grid-template-columns: 1fr; } }
+
+  ul { list-style: none; }
+  ul li { padding-left: 18px; position: relative; color: #b4b4b4; margin-bottom: 8px; }
+  ul li::before { content: '—'; position: absolute; left: 0; color: #4a4a4a; }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  @media (max-width: 700px) { .split { grid-template-columns: 1fr; } }
+  .muted li { color: #7d7d7d; }
+
+  .req { font-size: 14px; color: #8f8f8f; }
+  .req code { background: #111; border: 1px solid rgba(255,255,255,.1); padding: 1px 6px; font-size: 13px; }
+
+  footer { padding: 48px 0 72px; color: #555; font-size: 13px; }
+  footer a { color: #8a8a8a; text-decoration: none; }
+  footer a:hover { color: #fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="mark"><img src="icon.png" alt="MindHexOps icon"></div>
+    <h1>Program your own mind.</h1>
+    <p class="sub">
+      MindHexOps is a minimalist Windows app that puts your own messages and images
+      on screen, on a schedule, over any window you're working in.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://alexbuild5.itch.io/mindhexops/purchase" target="_blank" rel="noopener">Buy on itch.io — $1.39</a>
+      <a class="btn" href="#how">How it works</a>
+    </div>
+    <p class="note" style="margin-top:18px">One-time purchase. Windows 10 or 11, 64-bit.</p>
+  </div>
+</header>
+
+<section id="how">
+  <div class="wrap">
+    <h2>What it does</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Your words, on screen</h3>
+        <p>Type your messages, one per line. They appear as topmost overlays with a smooth fade in and out, then repeat.</p>
+      </div>
+      <div class="card">
+        <h3>Your images too</h3>
+        <p>Drop in any JPG or PNG. MindHexOps shows them the same way — a goal, a number, a face, whatever you need in front of you.</p>
+      </div>
+      <div class="card">
+        <h3>Out of the way</h3>
+        <p>Runs from the system tray. Optional start with Windows, launching minimised. Never interrupts you with popups.</p>
+      </div>
+      <div class="card">
+        <h3>Entirely yours</h3>
+        <p>No account, no sign-in, no telemetry, no cloud. Your messages are a plain text file on your own disk.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Screenshots</h2>
+    <div class="shots">
+      <img src="preview1.png" alt="MindHexOps main window: a dark interface with a list of your own messages">
+      <img src="preview2.png" alt="Adding images to MindHexOps through the standard Windows file picker">
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Honest about what it is</h2>
+    <div class="split">
+      <div>
+        <h3>It is</h3>
+        <ul>
+          <li>A reminder and reinforcement tool you configure yourself</li>
+          <li>A way to keep a goal, a number or an image in your field of view</li>
+          <li>A small, quiet Windows utility that stays out of the way</li>
+        </ul>
+      </div>
+      <div>
+        <h3>It is not</h3>
+        <ul class="muted">
+          <li>A magic switch — you still do the work</li>
+          <li>A cloud service, a subscription, or an account</li>
+          <li>Anything that sends your data anywhere</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Technical</h2>
+    <p class="req">
+      Self-contained .NET 9 build. Extract the download and run <code>MindHexOps.exe</code> —
+      there is no installer, no runtime to install and no setup wizard.
+      Your messages and images are stored in <code>%APPDATA%\MindHexOps\</code>, so they survive updates.
+    </p>
+    <p class="req" style="margin-top:16px">
+      Requires Windows 10 (build 19041 or later) or Windows 11, 64-bit.
+      The app is currently unsigned, so Windows SmartScreen may show a one-time warning on first run:
+      choose <em>More info</em> → <em>Run anyway</em>.
+    </p>
+  </div>
+</section>
+
+<section style="border-bottom:none">
+  <div class="wrap">
+    <h2>Get it</h2>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://alexbuild5.itch.io/mindhexops/purchase" target="_blank" rel="noopener">Buy on itch.io — $1.39</a>
+      <a class="btn" href="https://alexbuild5.itch.io/mindhexops" target="_blank" rel="noopener">See the full page</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>MindHexOps by <a href="https://alexproenca.com">Alex Proença</a>.</p>
+    <p style="margin-top:8px"><a href="https://alexproenca.com">← Back to portfolio</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
